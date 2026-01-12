@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, statSync } from 'fs';
+import { existsSync, readdirSync, statSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import chalk from 'chalk';
 import { glob } from 'glob';
@@ -11,6 +11,9 @@ import { generateAgent } from '../generators/agent.js';
 import { generatePrompt } from '../generators/prompt.js';
 import { generateWorkflow } from '../generators/workflow.js';
 import { generateInstructions } from '../generators/instructions.js';
+import { ensureDir } from '../utils.js';
+
+const MANIFEST_FILENAME = '.daedalion-manifest.json';
 
 export async function build(cwd, options = {}) {
   console.log();
@@ -75,9 +78,14 @@ export async function build(cwd, options = {}) {
   logGenerated(workflowResult.path, cwd, options);
 
   // Generate copilot-instructions.md
-  const instructionsResult = generateInstructions(openspecDir, outputDir, config, options);
+  const instructionsResult = generateInstructions(openspecDir, outputDir, options);
   generatedFiles.push(instructionsResult);
   logGenerated(instructionsResult.path, cwd, options);
+
+  // Write manifest of generated files (for clean command)
+  if (!options.dryRun) {
+    writeManifest(outputDir, generatedFiles, cwd);
+  }
 
   console.log();
   if (options.dryRun) {
@@ -88,6 +96,17 @@ export async function build(cwd, options = {}) {
   console.log();
 
   return generatedFiles;
+}
+
+function writeManifest(outputDir, generatedFiles, cwd) {
+  const manifestPath = join(outputDir, MANIFEST_FILENAME);
+  const manifest = {
+    version: 1,
+    generatedAt: new Date().toISOString(),
+    files: generatedFiles.map(f => f.path.replace(cwd + '/', ''))
+  };
+  ensureDir(manifestPath);
+  writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 }
 
 async function findAndParseSpecs(openspecDir, options) {

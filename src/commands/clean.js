@@ -1,16 +1,9 @@
-import { existsSync, rmSync, readdirSync, statSync } from 'fs';
-import { join } from 'path';
+import { existsSync, rmSync, readdirSync, readFileSync } from 'fs';
+import { join, dirname } from 'path';
 import chalk from 'chalk';
 import { loadConfig, resolveOutputPath } from '../config.js';
 
-// Directories/files that Daedalion generates
-const GENERATED_PATHS = [
-  'skills',
-  'agents',
-  'prompts',
-  'workflows/daedalion.yml',
-  'copilot-instructions.md'
-];
+const MANIFEST_FILENAME = '.daedalion-manifest.json';
 
 export async function clean(cwd) {
   console.log();
@@ -26,39 +19,66 @@ export async function clean(cwd) {
     return;
   }
 
-  let removed = 0;
+  const manifestPath = join(outputDir, MANIFEST_FILENAME);
 
-  for (const path of GENERATED_PATHS) {
-    const fullPath = join(outputDir, path);
+  if (!existsSync(manifestPath)) {
+    console.log(chalk.yellow('  No manifest found. Run `daedalion build` first to generate a manifest.'));
+    console.log(chalk.gray('  (Clean requires a manifest to avoid deleting non-Daedalion files)'));
+    console.log();
+    return;
+  }
+
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+  const filesToRemove = manifest.files || [];
+
+  let removed = 0;
+  const cleanedDirs = new Set();
+
+  for (const relativePath of filesToRemove) {
+    const fullPath = join(cwd, relativePath);
 
     if (existsSync(fullPath)) {
-      const stat = statSync(fullPath);
-
-      if (stat.isDirectory()) {
-        rmSync(fullPath, { recursive: true, force: true });
-        console.log(chalk.green(`  ✓ Removed ${path}/`));
-      } else {
-        rmSync(fullPath, { force: true });
-        console.log(chalk.green(`  ✓ Removed ${path}`));
-      }
+      rmSync(fullPath, { force: true });
+      console.log(chalk.green(`  ✓ Removed ${relativePath}`));
       removed++;
+
+      // Track parent directories for cleanup
+      cleanedDirs.add(dirname(fullPath));
     }
   }
 
-  // Clean up empty workflows directory if daedalion.yml was the only file
-  const workflowsDir = join(outputDir, 'workflows');
-  if (existsSync(workflowsDir)) {
-    const remaining = readdirSync(workflowsDir);
-    if (remaining.length === 0) {
-      rmSync(workflowsDir, { recursive: true, force: true });
-    }
+  // Remove the manifest itself
+  rmSync(manifestPath, { force: true });
+  console.log(chalk.green(`  ✓ Removed .github/${MANIFEST_FILENAME}`));
+
+  // Clean up empty directories (skills/domain/, agents/, etc.)
+  for (const dir of cleanedDirs) {
+    cleanEmptyDirs(dir, outputDir);
   }
 
   console.log();
   if (removed > 0) {
-    console.log(chalk.green(`  Done. ${removed} items removed.`));
+    console.log(chalk.green(`  Done. ${removed} files removed.`));
   } else {
     console.log(chalk.yellow('  No generated files found to clean.'));
   }
   console.log();
+}
+
+// Recursively remove empty directories up to (but not including) the output dir
+function cleanEmptyDirs(dir, stopAt) {
+  if (dir === stopAt || !existsSync(dir)) {
+    return;
+  }
+
+  try {
+    const contents = readdirSync(dir);
+    if (contents.length === 0) {
+      rmSync(dir, { recursive: true, force: true });
+      // Check parent directory too
+      cleanEmptyDirs(dirname(dir), stopAt);
+    }
+  } catch {
+    // Directory might have been removed already
+  }
 }
