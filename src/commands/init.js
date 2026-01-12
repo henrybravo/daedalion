@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, copyFileSync, readdirSync, statSync, readFileSync, writeFileSync } from 'fs';
-import { join, dirname } from 'path';
+import { existsSync, mkdirSync, copyFileSync, readdirSync, statSync } from 'fs';
+import { join, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 
@@ -18,7 +18,7 @@ export async function init(cwd) {
   let skipped = 0;
 
   for (const file of files) {
-    const relativePath = file.replace(templatesDir + '/', '');
+    const relativePath = relative(templatesDir, file);
     const targetPath = join(cwd, relativePath);
 
     if (existsSync(targetPath)) {
