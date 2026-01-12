@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, statSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { join, relative } from 'path';
 import chalk from 'chalk';
 import { glob } from 'glob';
 import { loadConfig, resolveOpenspecPath, resolveOutputPath } from '../config.js';
@@ -34,7 +34,7 @@ export async function build(cwd, options = {}) {
   console.log('  Parsing specs...');
   const specs = await findAndParseSpecs(openspecDir, options);
   for (const spec of specs) {
-    console.log(chalk.gray(`    ✓ ${spec.path.replace(cwd + '/', '')}`));
+    console.log(chalk.gray(`    ✓ ${relative(cwd, spec.path)}`));
   }
 
   // Parse changes
@@ -42,7 +42,7 @@ export async function build(cwd, options = {}) {
   console.log('  Parsing changes...');
   const changes = await findAndParseChanges(openspecDir, options);
   for (const change of changes) {
-    console.log(chalk.gray(`    ✓ ${change.proposal.path.replace(cwd + '/', '')}`));
+    console.log(chalk.gray(`    ✓ ${relative(cwd, change.proposal.path)}`));
   }
 
   // Aggregate tasks from all changes for skills
@@ -103,7 +103,7 @@ function writeManifest(outputDir, generatedFiles, cwd) {
   const manifest = {
     version: 1,
     generatedAt: new Date().toISOString(),
-    files: generatedFiles.map(f => f.path.replace(cwd + '/', ''))
+    files: generatedFiles.map(f => relative(cwd, f.path))
   };
   ensureDir(manifestPath);
   writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
@@ -169,8 +169,8 @@ function findDomainForChange(change, specs) {
   return 'default';
 }
 
-function logGenerated(path, cwd, options) {
-  const relativePath = path.replace(cwd + '/', '');
+function logGenerated(filePath, cwd, options) {
+  const relativePath = relative(cwd, filePath);
   if (options.dryRun) {
     console.log(chalk.yellow(`    → ${relativePath}`));
   } else {
