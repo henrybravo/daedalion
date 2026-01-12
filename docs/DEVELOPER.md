@@ -261,6 +261,75 @@ describe('build', () => {
 });
 ```
 
+## Versioning & Releases
+
+### Version Locations
+
+Version is defined in multiple places (keep in sync):
+
+| File | Location |
+|------|----------|
+| `package.json` | `"version": "0.0.1"` |
+| `bin/daedalion.js` | `displayLogo()` and `.version()` |
+| `src/commands/*.js` | `chalk.bold('  Daedalion v0.0.1')` |
+
+### Dev Builds
+
+During development, the CLI shows commit hash for traceability:
+
+```
+Version: 0.0.1-dev+abc1234
+```
+
+To get current commit hash:
+```bash
+git rev-parse --short HEAD
+```
+
+### Release Checklist
+
+```bash
+# 1. Ensure tests pass
+npm test
+
+# 2. Update version in all locations
+# - package.json
+# - bin/daedalion.js (displayLogo + .version())
+# - src/commands/*.js headers
+
+# 3. Update CHANGELOG.md (if exists)
+
+# 4. Commit version bump
+git add -A
+git commit -m "chore: bump version to X.Y.Z"
+
+# 5. Tag release
+git tag -a vX.Y.Z -m "Release X.Y.Z"
+git push origin main --tags
+
+# 6. Publish to npm
+npm publish
+```
+
+### Semantic Versioning
+
+| Change Type | Version Bump | Example |
+|-------------|--------------|---------|
+| Breaking changes | Major (X.0.0) | Remove command, change output format |
+| New features | Minor (0.X.0) | Add command, new config option |
+| Bug fixes | Patch (0.0.X) | Fix parser, correct output |
+
+### Pre-release Versions
+
+```bash
+# Alpha/beta releases
+npm version prerelease --preid=alpha  # 0.0.2-alpha.0
+npm version prerelease --preid=beta   # 0.0.2-beta.0
+
+# Publish with tag
+npm publish --tag next
+```
+
 ## Common Tasks
 
 ### Debug a parser

@@ -6,6 +6,7 @@ import { init } from '../src/commands/init.js';
 import { build } from '../src/commands/build.js';
 import { validate } from '../src/commands/validate.js';
 import { clean } from '../src/commands/clean.js';
+import { VERSION, getVersionString } from '../src/version.js';
 
 function displayLogo() {
   const logo = `
@@ -20,9 +21,7 @@ function displayLogo() {
   console.log(chalk.cyan(logo));
   console.log(chalk.gray(`Author: Henry Bravo`));
   console.log(chalk.gray(`Email: info@henrybravo.nl`));
-  //console.log(chalk.gray(`Date: ${new Date().toISOString().split('T')[0]}`));
-  console.log(chalk.gray(`Date: 2026-01-11`));
-  console.log(chalk.gray(`Version: 0.0.1`));
+  console.log(chalk.gray(`Version: ${getVersionString()}`));
   console.log();
 }
 
@@ -34,7 +33,7 @@ if (!process.argv.includes('--help') && !process.argv.includes('-h')) {
 program
   .name('daedalion')
   .description('OpenSpec-to-Agent compiler for GitHub Copilot')
-  .version('0.0.1')
+  .version(VERSION)
   .helpOption('-h, --help', 'display help for command');
 
 program
