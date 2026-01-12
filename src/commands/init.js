@@ -2,13 +2,14 @@ import { existsSync, mkdirSync, copyFileSync, readdirSync, statSync } from 'fs';
 import { join, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
 import chalk from 'chalk';
+import { VERSION } from '../version.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export async function init(cwd) {
   console.log();
-  console.log(chalk.bold('  Daedalion v0.0.1'));
+  console.log(chalk.bold(`  Daedalion v${VERSION}`));
   console.log();
 
   const templatesDir = join(__dirname, '../../templates/init');

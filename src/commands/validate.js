@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
 import chalk from 'chalk';
+import { VERSION } from '../version.js';
 import { glob } from 'glob';
 import { loadConfig, resolveOpenspecPath, resolveOutputPath } from '../config.js';
 import { parseSpec } from '../parsers/spec.js';
@@ -8,7 +9,7 @@ import { parseProposal } from '../parsers/proposal.js';
 
 export async function validate(cwd) {
   console.log();
-  console.log(chalk.bold('  Daedalion v0.0.1 - Validate'));
+  console.log(chalk.bold(`  Daedalion v${VERSION} - Validate`));
   console.log();
 
   const config = loadConfig(cwd);

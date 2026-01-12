@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, statSync, writeFileSync } from 'fs';
 import { join, relative } from 'path';
 import chalk from 'chalk';
+import { VERSION } from '../version.js';
 import { glob } from 'glob';
 import { loadConfig, resolveOpenspecPath, resolveOutputPath } from '../config.js';
 import { parseSpec } from '../parsers/spec.js';
@@ -17,7 +18,7 @@ const MANIFEST_FILENAME = '.daedalion-manifest.json';
 
 export async function build(cwd, options = {}) {
   console.log();
-  console.log(chalk.bold('  Daedalion v0.0.1'));
+  console.log(chalk.bold(`  Daedalion v${VERSION}`));
   console.log();
 
   const config = loadConfig(cwd);

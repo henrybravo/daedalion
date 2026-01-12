@@ -1,13 +1,14 @@
 import { existsSync, rmSync, readdirSync, readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import chalk from 'chalk';
+import { VERSION } from '../version.js';
 import { loadConfig, resolveOutputPath } from '../config.js';
 
 const MANIFEST_FILENAME = '.daedalion-manifest.json';
 
 export async function clean(cwd) {
   console.log();
-  console.log(chalk.bold('  Daedalion v0.0.1 - Clean'));
+  console.log(chalk.bold(`  Daedalion v${VERSION} - Clean`));
   console.log();
 
   const config = loadConfig(cwd);

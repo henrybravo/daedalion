@@ -90,10 +90,11 @@ openspec/project.md + AGENTS.md (if exists)
 
 ```javascript
 import chalk from 'chalk';
+import { VERSION } from '../version.js';
 import { loadConfig } from '../config.js';
 
 export async function yourcommand(cwd, options = {}) {
-  console.log(chalk.bold('  Daedalion v0.0.1 - YourCommand'));
+  console.log(chalk.bold(`  Daedalion v${VERSION} - YourCommand`));
   const config = loadConfig(cwd);
   // ... implementation
 }
@@ -218,7 +219,7 @@ The `clean` command reads this manifest to remove only Daedalion-generated files
 Use chalk for consistent output:
 
 ```javascript
-console.log(chalk.bold('  Daedalion v0.0.1'));
+console.log(chalk.bold(`  Daedalion v${VERSION}`));
 console.log(chalk.green(`  ✓ ${relativePath}`));
 console.log(chalk.yellow(`  ⚠ ${warning}`));
 console.log(chalk.red(`  ✗ ${error}`));
@@ -263,15 +264,20 @@ describe('build', () => {
 
 ## Versioning & Releases
 
-### Version Locations
+### Version Source
 
-Version is defined in multiple places (keep in sync):
+Version is centralized in `package.json` and imported via `src/version.js`:
 
-| File | Location |
-|------|----------|
-| `package.json` | `"version": "0.0.1"` |
-| `bin/daedalion.js` | `displayLogo()` and `.version()` |
-| `src/commands/*.js` | `chalk.bold('  Daedalion v0.0.1')` |
+| File | Purpose |
+|------|---------|
+| `package.json` | Single source of truth for version |
+| `src/version.js` | Exports `VERSION` and `getVersionString()` |
+
+All commands import from `version.js`:
+```javascript
+import { VERSION } from '../version.js';
+console.log(chalk.bold(`  Daedalion v${VERSION}`));
+```
 
 ### Dev Builds
 
@@ -292,10 +298,8 @@ git rev-parse --short HEAD
 # 1. Ensure tests pass
 npm test
 
-# 2. Update version in all locations
-# - package.json
-# - bin/daedalion.js (displayLogo + .version())
-# - src/commands/*.js headers
+# 2. Update version in package.json (single source of truth)
+npm version patch  # or minor, major
 
 # 3. Update CHANGELOG.md (if exists)
 
