@@ -4,100 +4,63 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://img.shields.io/npm/v/daedalion)](https://www.npmjs.com/package/daedalion)
 
-> OpenSpec-to-Agent compiler for GitHub Copilot
->
-> *"Write specs once, get agents automatically."*
+> **OpenSpec → GitHub Copilot compiler**
+> Turns your `openspec/` specifications into native GitHub Copilot artifacts — agents, skills, prompts, and instructions.
 
-## Overview
+## Why Daedalion
 
-Daedalion generates `.github/` artifacts from OpenSpec specifications. Your specs stay the source of truth; agents stay in sync automatically.
+GitHub Copilot has specific file formats it uses natively:
 
-```
-OpenSpec (what) ───▶ Daedalion ───▶ GitHub Copilot (how)
-```
+- **`.github/copilot-instructions.md`** — Always-loaded project context
+- **`.github/agents/*.agent.md`** — Selectable agent personas
+- **`.github/skills/*/*.md`** — Auto-loaded when keywords like #auth appear
+- **`.github/prompts/*.prompt.md`** — Custom slash commands
 
-## Installation
+OpenSpec creates a root `AGENTS.md` for generic AI assistants, but **Copilot doesn't treat it as primary context**.
 
-```bash
-npm install -g daedalion
-```
+**Daedalion bridges this gap:** one command generates all native Copilot files from your specs.
 
 ## Quick Start
 
 ```bash
-# 1. Initialize a new project
-daedalion init
+# If starting fresh with OpenSpec
+npm install -g openspec daedalion
+openspec init        # Creates openspec/ structure + AGENTS.md
+daedalion init       # Adds daedalion.yaml + example specs
 
-# 2. Edit your specs
-# - openspec/specs/example/spec.md
-# - openspec/changes/example-feature/proposal.md
-
-# 3. Generate GitHub Copilot artifacts
+# Generate Copilot artifacts
 daedalion build
 
-# 4. Validate everything is in sync
+# Verify everything is in sync
 daedalion validate
 ```
 
 ## Commands
 
-### `daedalion init`
+| Command | Description |
+|---------|-------------|
+| `daedalion init` | Scaffold config + example specs |
+| `daedalion build` | Generate `.github/` artifacts from specs |
+| `daedalion validate` | Check specs and generated files are in sync |
+| `daedalion clean` | Remove only Daedalion-generated files |
 
-Scaffolds a new project with example specs:
+**Build flags:** `--dry-run`, `--verbose`, `--force`
 
-```
-project/
-├── daedalion.yaml
-└── openspec/
-    ├── project.md
-    ├── specs/
-    │   └── example/
-    │       └── spec.md
-    └── changes/
-        └── example-feature/
-            ├── proposal.md
-            └── tasks.md
-```
-
-### `daedalion build`
-
-Generates GitHub Copilot artifacts from your specs:
+## Generated Output
 
 ```
 .github/
-├── skills/
-│   └── {domain}/
-│       └── SKILL.md
-├── agents/
-│   └── {domain}.agent.md
-├── prompts/
-│   └── {change-name}.prompt.md
-├── workflows/
-│   └── daedalion.yml
-└── copilot-instructions.md
+├── copilot-instructions.md    # Project context + OpenSpec workflow reference
+├── agents/{domain}.agent.md   # Per-domain agent personas
+├── skills/{domain}/SKILL.md   # Auto-loaded skill files
+├── prompts/{change}.prompt.md # Slash commands for active changes
+├── workflows/daedalion.yml    # CI workflow
+└── .daedalion-manifest.json   # Tracks generated files (for clean)
 ```
-
-**Flags:**
-- `--dry-run` – Preview changes without writing files
-- `--verbose` – Detailed output for debugging
-- `--force` – Overwrite without confirmation
-
-### `daedalion validate`
-
-Checks that:
-- Every spec has at least one requirement
-- Every requirement has at least one scenario
-- Generated skills exist for all specs
-- Generated prompts exist for all changes
-- No orphaned skills (skills without source specs)
-
-### `daedalion clean`
-
-Removes all generated files from `.github/` while preserving your specs and any non-Daedalion files.
 
 ## Configuration
 
-Create `daedalion.yaml` in your project root:
+Create `daedalion.yaml`:
 
 ```yaml
 version: 1
@@ -105,136 +68,27 @@ target: github
 openspec: ./openspec
 output: ./.github
 
-# Optional
-project_name: my-project
+project_name: my-project  # optional
 
-# CI behavior
 ci:
   auto_commit: false
   commit_message: 'chore: regenerate agents from specs'
 ```
 
-## OpenSpec Format
+## How It Works
 
-### Specification (`specs/{domain}/spec.md`)
+1. **Specs** (`openspec/specs/{domain}/spec.md`) → **Skills** + **Agents**
+2. **Changes** (`openspec/changes/{name}/proposal.md`) → **Prompts**
+3. **project.md** → **copilot-instructions.md** (with `AGENTS.md` reference if present)
 
-```markdown
-# Auth Specification
-
-## Requirements
-
-### Requirement: User Authentication
-The system SHALL issue a JWT on successful login.
-
-#### Scenario: Valid credentials
-- WHEN user submits valid credentials
-- THEN a JWT is returned
-
-#### Scenario: Invalid credentials
-- WHEN user submits invalid credentials
-- THEN an error is returned
-```
-
-### Proposal (`changes/{name}/proposal.md`)
-
-```markdown
-# Add Two-Factor Authentication
-
-## Why
-Security improvement for user accounts.
-
-## What
-Add OTP verification after password login.
-```
-
-### Tasks (`changes/{name}/tasks.md`)
-
-```markdown
-# Tasks
-
-## Setup
-- [ ] Add OTP library dependency
-- [ ] Create database schema for OTP secrets
-
-## Implementation
-- [ ] Generate OTP secret on user enrollment
-- [ ] Verify OTP during login
-```
-
-## Generated Output
-
-### Skills
-
-Skills are auto-loaded by GitHub Copilot when relevant:
-
-```yaml
----
-name: auth
-description: User authentication with JWT. Use when working on auth, login, session.
----
-# Auth Specification
-
-## Requirements
-- **User Authentication**: The system SHALL issue a JWT on successful login.
-
-## Acceptance Criteria
-### Valid credentials
-- WHEN user submits valid credentials
-- THEN a JWT is returned
-```
-
-### Agents
-
-Agents are selectable personas in Copilot chat:
-
-```yaml
----
-name: auth
-description: Implements auth features following specifications
-tools: ['edit', 'search', 'terminal']
----
-# auth Agent
-
-You implement auth features following the specification.
-
-## Available Skills
-- **#auth** — Auth Specification - user authentication
-
-## Workflow
-1. Read the #auth skill for requirements
-2. Implement following acceptance criteria
-3. Verify all scenarios pass
-```
-
-### Prompts
-
-Prompts appear as slash commands:
-
-```yaml
----
-description: Add Two-Factor Authentication
-agent: auth
----
-Implement the add-2fa change proposal.
-
-## Context
-Security improvement for user accounts.
-
-## Scope
-Add OTP verification after password login.
-```
+The `clean` command uses a manifest to remove only Daedalion-generated files, preserving `openspec-*.prompt.md` and other non-Daedalion content.
 
 ## CI Integration
 
-Daedalion generates a GitHub Actions workflow. Two patterns:
+Generated workflow supports two patterns:
 
-**Pattern A: Validate only (default)**
-- Runs `daedalion build --dry-run` and `daedalion validate` on PRs
-- Fails if specs and artifacts are out of sync
-
-**Pattern B: Auto-commit**
-- Set `ci.auto_commit: true` in config
-- Automatically commits regenerated artifacts on push to main
+- **Validate only (default):** Fails if specs and artifacts drift
+- **Auto-commit:** Set `ci.auto_commit: true` to regenerate on push
 
 ## License
 
