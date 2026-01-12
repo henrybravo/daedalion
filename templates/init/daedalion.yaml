@@ -1,0 +1,13 @@
+version: 1
+target: github
+openspec: ./openspec
+output: ./.github
+
+# Optional
+# project_name: my-project
+# constitution: ./CONSTITUTION.md
+
+# CI behavior
+ci:
+  auto_commit: false
+  commit_message: 'chore: regenerate agents from specs'
