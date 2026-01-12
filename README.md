@@ -4,8 +4,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://img.shields.io/npm/v/daedalion)](https://www.npmjs.com/package/daedalion)
 
-> **OpenSpec → GitHub Copilot compiler**
-> Turns your `openspec/` specifications into native GitHub Copilot artifacts — agents, skills, prompts, and instructions.
+> OpenSpec-to-Agent compiler for GitHub Copilot
+>
+> *"Write specs, get agents automatically."*
+
+## Overview
+
+Daedalion turns your `openspec/` specifications into native GitHub Copilot artifacts — agents, skills, prompts, and instructions. Your specs stay the source of truth; agents stay in sync automatically.
+
+```
+OpenSpec (what) ───▶ Daedalion ───▶ GitHub Copilot (how)
+```
 
 ## Why Daedalion
 
@@ -37,9 +46,63 @@ daedalion validate
 
 ## Commands
 
+### `daedalion init`
+
+Scaffolds a new project with example specs:
+
+```
+project/
+├── daedalion.yaml
+└── openspec/
+    ├── project.md
+    ├── specs/
+    │   └── example/
+    │       └── spec.md
+    └── changes/
+        └── example-feature/
+            ├── proposal.md
+            └── tasks.md
+```
+
+### `daedalion build`
+
+Generates GitHub Copilot artifacts from your specs:
+
+```
+.github/
+├── skills/
+│   └── {domain}/
+│       └── SKILL.md
+├── agents/
+│   └── {domain}.agent.md
+├── prompts/
+│   └── {change-name}.prompt.md
+├── workflows/
+│   └── daedalion.yml
+└── copilot-instructions.md
+```
+
+**Flags:**
+- `--dry-run` – Preview changes without writing files
+- `--verbose` – Detailed output for debugging
+- `--force` – Overwrite without confirmation
+
+### `daedalion validate`
+
+Checks that:
+- Every spec has at least one requirement
+- Every requirement has at least one scenario
+- Generated skills exist for all specs
+- Generated prompts exist for all changes
+- No orphaned skills (skills without source specs)
+
+### `daedalion clean`
+
+Removes all generated files from `.github/` while preserving your specs and any non-Daedalion files.
+
 | Command | Description |
 |---------|-------------|
-| `daedalion init` | Scaffold config + example specs |
+| `daedalion init` | Scaffold config + example specs | 
 | `daedalion build` | Generate `.github/` artifacts from specs |
 | `daedalion validate` | Check specs and generated files are in sync |
 | `daedalion clean` | Remove only Daedalion-generated files |
