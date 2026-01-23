@@ -18,16 +18,17 @@ OpenSpec (what) ───▶ Daedalion ───▶ GitHub Copilot (how)
 
 ## Why Daedalion
 
-GitHub Copilot has specific file formats it uses natively:
+GitHub Copilot supports multiple instruction formats:
 
+- **`AGENTS.md`** — Agent instructions (read natively, nearest file takes precedence)
 - **`.github/copilot-instructions.md`** — Always-loaded project context
 - **`.github/agents/*.agent.md`** — Selectable agent personas
 - **`.github/skills/*/*.md`** — Auto-loaded when keywords like #auth appear
 - **`.github/prompts/*.prompt.md`** — Custom slash commands
 
-OpenSpec creates a root `AGENTS.md` for generic AI assistants, but **Copilot doesn't treat it as primary context**.
+OpenSpec creates a root `AGENTS.md` for workflow instructions, but you still need domain-specific skills, agents, and prompts.
 
-**Daedalion bridges this gap:** one command generates all native Copilot files from your specs.
+**Daedalion generates these automatically:** one command creates all native Copilot artifacts from your specs.
 
 ## Quick Start
 
@@ -142,7 +143,9 @@ ci:
 
 1. **Specs** (`openspec/specs/{domain}/spec.md`) → **Skills** + **Agents**
 2. **Changes** (`openspec/changes/{name}/proposal.md`) → **Prompts**
-3. **project.md** → **copilot-instructions.md** (with `AGENTS.md` reference if present)
+3. **project.md** → **copilot-instructions.md**
+
+Note: GitHub Copilot reads `AGENTS.md` natively, so Daedalion doesn't duplicate that content.
 
 The `clean` command uses a manifest to remove only Daedalion-generated files, preserving `openspec-*.prompt.md` and other non-Daedalion content.
 

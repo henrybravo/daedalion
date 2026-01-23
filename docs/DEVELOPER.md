@@ -79,9 +79,11 @@ openspec/changes/{name}/proposal.md + tasks.md
         ↓ generatePrompt()
 .github/prompts/{name}.prompt.md
 
-openspec/project.md + AGENTS.md (if exists)
+openspec/project.md
         ↓ generateInstructions()
 .github/copilot-instructions.md
+
+Note: Copilot reads AGENTS.md natively, so we don't duplicate it.
 ```
 
 ## Adding a New Command
