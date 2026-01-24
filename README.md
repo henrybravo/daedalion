@@ -65,6 +65,19 @@ project/
             └── tasks.md
 ```
 
+**Flags:**
+- `--target <mode>` – Set agent target mode: `ide` (default) or `sdk`
+
+**Examples:**
+
+```bash
+# Default IDE mode
+daedalion init
+
+# SDK mode for CI pipelines
+daedalion init --target sdk
+```
+
 ### `daedalion build`
 
 Generates GitHub Copilot artifacts from your specs:
@@ -159,6 +172,8 @@ agents:
 ```
 
 Generated `.github/agents/*.agent.md` will include your custom tools instead of IDE defaults (`edit`, `search`, `terminal`).
+
+**Tip:** Use `daedalion init --target sdk` to set SDK mode from the start.
 
 ### Tool Stub Generation
 
