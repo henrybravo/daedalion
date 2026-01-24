@@ -60,7 +60,7 @@ export async function build(cwd, options = {}) {
     generatedFiles.push(skillResult);
     logGenerated(skillResult.path, cwd, options);
 
-    const agentResult = generateAgent(spec, outputDir, options);
+    const agentResult = generateAgent(spec, outputDir, options, config);
     generatedFiles.push(agentResult);
     logGenerated(agentResult.path, cwd, options);
   }

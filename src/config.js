@@ -10,6 +10,10 @@ const DEFAULT_CONFIG = {
   ci: {
     auto_commit: false,
     commit_message: 'chore: regenerate agents from specs'
+  },
+  agents: {
+    target: 'ide',  // 'ide' or 'sdk'
+    tools: null     // null to use IDE defaults, or array of custom tool names
   }
 };
 
@@ -29,6 +33,10 @@ export function loadConfig(cwd) {
     ci: {
       ...DEFAULT_CONFIG.ci,
       ...(userConfig.ci || {})
+    },
+    agents: {
+      ...DEFAULT_CONFIG.agents,
+      ...(userConfig.agents || {})
     }
   };
 }

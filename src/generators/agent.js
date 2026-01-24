@@ -2,27 +2,36 @@ import { ensureDir } from '../utils.js';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
 
-export function generateAgent(spec, outputDir, options = {}) {
+export function generateAgent(spec, outputDir, options = {}, config = {}) {
   const agentPath = join(outputDir, 'agents', `${spec.domain}.agent.md`);
 
   const skillDescription = generateSkillDescription(spec);
+  const agentConfig = config.agents || {};
+  const target = agentConfig.target || 'ide';
+
+  let tools;
+  let workflow;
+
+  if (target === 'sdk') {
+    tools = agentConfig.tools || [];
+    workflow = generateSDKWorkflow(spec, tools);
+  } else {
+    tools = ['edit', 'search', 'terminal'];
+    workflow = generateIDEWorkflow(spec);
+  }
+
+  const toolsYaml = tools.length > 0
+    ? `tools: [${tools.map(t => `'${t}'`).join(', ')}]`
+    : '';
 
   const content = `---
 name: ${spec.domain}
 description: Implements ${spec.domain} features following specifications
-tools: ['edit', 'search', 'terminal']
+${toolsYaml}
 ---
 # ${spec.domain} Agent
 
-You implement ${spec.domain} features following the specification.
-
-## Available Skills
-- **#${spec.domain}** — ${skillDescription}
-
-## Workflow
-1. Read the #${spec.domain} skill for requirements
-2. Implement following acceptance criteria
-3. Verify all scenarios pass
+${workflow}
 `;
 
   if (options.dryRun) {
@@ -32,6 +41,52 @@ You implement ${spec.domain} features following the specification.
   ensureDir(agentPath);
   writeFileSync(agentPath, content);
   return { path: agentPath, content };
+}
+
+function generateIDEWorkflow(spec) {
+  const skillDescription = generateSkillDescription(spec);
+
+  return `You implement ${spec.domain} features following the specification.
+
+## Available Skills
+- **#${spec.domain}** — ${skillDescription}
+
+## Workflow
+1. Read the #${spec.domain} skill for requirements
+2. Implement following acceptance criteria
+3. Verify all scenarios pass
+`;
+}
+
+function generateSDKWorkflow(spec, tools) {
+  const skillDescription = generateSkillDescription(spec);
+
+  if (tools.length === 0) {
+    return `You implement ${spec.domain} features following the specification.
+
+## Available Skills
+- **#${spec.domain}** — ${skillDescription}
+
+## Workflow
+1. Read the #${spec.domain} skill for requirements
+2. Implement following acceptance criteria
+3. Verify all scenarios pass
+`;
+  }
+
+  return `You implement ${spec.domain} features following the specification.
+
+## Available Skills
+- **#${spec.domain}** — ${skillDescription}
+
+## Available Tools
+${tools.map(t => `- **${t}**` ).join('\n')}
+
+## Workflow
+1. Read the #${spec.domain} skill for requirements
+2. Use available tools to implement following acceptance criteria
+3. Verify all scenarios pass
+`;
 }
 
 function generateSkillDescription(spec) {
