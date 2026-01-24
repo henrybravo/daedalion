@@ -40,11 +40,16 @@ function mapPythonType(type) {
     'Number': 'int | float',
     'object': 'dict',
     'Object': 'dict',
-    'array': 'list',
-    'Array': 'list',
+    'array': 'Array',
+    'Array': 'Array',
     'boolean': 'bool',
     'Boolean': 'bool'
   };
+
+  if (typeof type !== 'string') {
+    return 'Any';
+  }
+
   return typeMap[type] || type || 'Any';
 }
 
@@ -165,6 +170,11 @@ function mapJSType(type) {
     'boolean': 'boolean',
     'Boolean': 'boolean'
   };
+
+  if (typeof type !== 'string') {
+    return 'any';
+  }
+
   return typeMap[type] || type || 'any';
 }
 
