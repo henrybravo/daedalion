@@ -13,7 +13,8 @@ export function generateAgent(spec, outputDir, options = {}, config = {}) {
   let workflow;
 
   if (target === 'sdk') {
-    tools = agentConfig.tools || [];
+    const specTools = extractTools(spec);
+    tools = specTools.length > 0 ? specTools.map(t => t.name) : (agentConfig.tools || []);
     workflow = generateSDKWorkflow(spec, tools);
   } else {
     tools = ['edit', 'search', 'terminal'];
@@ -41,6 +42,23 @@ ${workflow}
   ensureDir(agentPath);
   writeFileSync(agentPath, content);
   return { path: agentPath, content };
+}
+
+function extractTools(spec) {
+  const tools = [];
+  const frontmatter = spec.frontmatter || {};
+
+  if (frontmatter.tools && Array.isArray(frontmatter.tools)) {
+    for (const tool of frontmatter.tools) {
+      if (typeof tool === 'string') {
+        tools.push({ name: tool });
+      } else if (tool.name) {
+        tools.push(tool);
+      }
+    }
+  }
+
+  return tools;
 }
 
 function generateIDEWorkflow(spec) {
