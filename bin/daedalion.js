@@ -39,9 +39,10 @@ program
 program
   .command('init')
   .description('Scaffold config + example spec')
-  .action(async () => {
+  .option('--target <mode>', 'Agent target mode: ide or sdk')
+  .action(async (options) => {
     try {
-      await init(process.cwd());
+      await init(process.cwd(), options);
     } catch (error) {
       console.error(chalk.red(`Error: ${error.message}`));
       process.exit(2);

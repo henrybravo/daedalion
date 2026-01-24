@@ -11,3 +11,8 @@ output: ./.github
 ci:
   auto_commit: false
   commit_message: 'chore: regenerate agents from specs'
+
+# Agent output configuration
+agents:
+  target: ide  # 'ide' or 'sdk'
+  tools: null  # null to use IDE defaults, or array of custom tool names
