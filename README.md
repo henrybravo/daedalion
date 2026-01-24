@@ -87,6 +87,7 @@ Generates GitHub Copilot artifacts from your specs:
 - `--dry-run` – Preview changes without writing files
 - `--verbose` – Detailed output for debugging
 - `--force` – Overwrite without confirmation
+- `--with-tools` – Generate tool stub files from specs
 
 ### `daedalion validate`
 
@@ -137,13 +138,78 @@ project_name: my-project  # optional
 ci:
   auto_commit: false
   commit_message: 'chore: regenerate agents from specs'
+
+# Agent output configuration
+agents:
+  target: ide  # 'ide' or 'sdk'
+  tools: null  # null to use IDE defaults, or array of custom tool names
+```
+
+### Agent Output Configuration
+
+For running agents in CI pipelines via GitHub Copilot SDK (where tools are Python/JS functions registered programmatically):
+
+```yaml
+agents:
+  target: sdk
+  tools:
+    - evaluate_application
+    - generate_synthetic_applicant
+    - compare_decisions
+```
+
+Generated `.github/agents/*.agent.md` will include your custom tools instead of IDE defaults (`edit`, `search`, `terminal`).
+
+### Tool Stub Generation
+
+Define tools in spec frontmatter and generate stub code:
+
+```yaml
+---
+domain: example
+title: Example Specification
+tools:
+  - name: evaluate_application
+    description: Run a loan application through the decision engine
+    inputs:
+      - name: application
+        type: dict
+        description: LoanApplication dict per spec schema
+    outputs:
+      - dict
+---
+```
+
+Run `daedalion build --with-tools` to generate `.github/tools/evaluate_application.py`:
+
+```python
+"""
+Run a loan application through the decision engine
+Implements: REQ-001: Tool Stubs
+"""
+
+def evaluate_application(application: dict) -> dict:
+    """
+    Run a loan application through the decision engine
+
+    Args:
+        application: dict - LoanApplication dict per spec schema
+
+    Returns:
+        dict
+
+    Spec References:
+        - REQ-001: Tool Stubs
+    """
+    raise NotImplementedError("Implement evaluate_application logic")
 ```
 
 ## How It Works
 
 1. **Specs** (`openspec/specs/{domain}/spec.md`) → **Skills** + **Agents**
 2. **Changes** (`openspec/changes/{name}/proposal.md`) → **Prompts**
-3. **project.md** → **copilot-instructions.md**
+3. **project.md** → **copilot-instructions.md`
+4. **Specs** (with `--with-tools`) → **Tool stubs** in `.github/tools/`
 
 Note: GitHub Copilot reads `AGENTS.md` natively, so Daedalion doesn't duplicate that content.
 

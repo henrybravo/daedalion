@@ -11,3 +11,4 @@ export { generateAgent } from './generators/agent.js';
 export { generatePrompt } from './generators/prompt.js';
 export { generateWorkflow } from './generators/workflow.js';
 export { generateInstructions } from './generators/instructions.js';
+export { generateTools } from './generators/tools.js';

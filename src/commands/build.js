@@ -12,6 +12,7 @@ import { generateAgent } from '../generators/agent.js';
 import { generatePrompt } from '../generators/prompt.js';
 import { generateWorkflow } from '../generators/workflow.js';
 import { generateInstructions } from '../generators/instructions.js';
+import { generateTools } from '../generators/tools.js';
 import { ensureDir } from '../utils.js';
 
 const MANIFEST_FILENAME = '.daedalion-manifest.json';
@@ -63,6 +64,18 @@ export async function build(cwd, options = {}) {
     const agentResult = generateAgent(spec, outputDir, options, config);
     generatedFiles.push(agentResult);
     logGenerated(agentResult.path, cwd, options);
+  }
+
+  // Generate tool stubs if --with-tools flag is set
+  if (options.withTools) {
+    console.log(chalk.gray(`    (generating tool stubs)`));
+    for (const spec of specs) {
+      const toolResults = generateTools(spec, outputDir, config, options);
+      for (const toolResult of toolResults) {
+        generatedFiles.push(toolResult);
+        logGenerated(toolResult.path, cwd, options);
+      }
+    }
   }
 
   // Generate prompts from changes

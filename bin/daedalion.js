@@ -54,6 +54,7 @@ program
   .option('--dry-run', 'Preview changes without writing files')
   .option('--verbose', 'Detailed output for debugging')
   .option('--force', 'Overwrite without confirmation')
+  .option('--with-tools', 'Generate tool stub files from specs')
   .action(async (options) => {
     try {
       await build(process.cwd(), options);
