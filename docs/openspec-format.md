@@ -21,6 +21,16 @@ openspec/
 **File:** `openspec/specs/{domain}/spec.md`
 
 ```markdown
+# Optional frontmatter for metadata and instructions
+---
+# Example of agent behavior guidance in SKILL.md output
+agent_instructions: |
+  You are an automated UAT validator.
+  ## Core Workflow
+  1. If specific scenarios are provided, run only those.
+  2. Otherwise run all scenarios.
+---
+
 # Auth Specification
 
 ## Requirements

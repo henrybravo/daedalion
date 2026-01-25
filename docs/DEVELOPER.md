@@ -7,7 +7,7 @@
 ## Setup
 
 ```bash
-git clone https://github.com/your-org/daedalion.git
+git clone https://github.com/henrybravo/daedalion.git
 cd daedalion
 npm install
 ```

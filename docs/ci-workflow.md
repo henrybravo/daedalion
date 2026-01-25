@@ -22,7 +22,7 @@ Fails the build if specs and generated artifacts are out of sync.
 ```yaml
 # daedalion.yaml
 ci:
-  auto_commit: false
+  auto_commit: false # Default and recommended and safe behavior
 ```
 
 **Workflow behavior:**
@@ -41,7 +41,7 @@ Automatically regenerates and commits artifacts on push to main.
 ```yaml
 # daedalion.yaml
 ci:
-  auto_commit: true
+  auto_commit: true # Only for test projects
   commit_message: 'chore: regenerate agents from specs'
 ```
 

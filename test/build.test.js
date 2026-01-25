@@ -90,6 +90,33 @@ ${original}`;
     expect(content).toContain('expected: success');
   });
 
+  it('renders agent instructions section when provided', () => {
+    const specPath = join(tempDir, 'openspec/specs/example/spec.md');
+    const original = readFileSync(specPath, 'utf-8');
+
+    const specWithInstructions = `---
+agent_instructions: |
+  You are a UAT validator.
+  ## Core Workflow
+  1. If specific scenarios provided, run only those.
+  2. Otherwise run all scenarios.
+---
+${original}`;
+
+    writeFileSync(specPath, specWithInstructions);
+
+    runCLI('build', tempDir);
+
+    const skillPath = join(tempDir, '.github/skills/example/SKILL.md');
+    const content = readFileSync(skillPath, 'utf-8');
+
+    expect(content).toContain('# Agent Instructions');
+    expect(content).toContain('You are a UAT validator.');
+    expect(content).toContain('## Core Workflow');
+    expect(content).toContain('1. If specific scenarios provided, run only those.');
+    expect(content).toContain('# Example Specification');
+  });
+
   it('generates agent from spec domain', () => {
     runCLI('build', tempDir);
 
@@ -120,6 +147,21 @@ ${original}`;
 
     // References source
     expect(content).toContain('openspec/changes/example-feature');
+  });
+
+  it('generates openspec cycle prompt', () => {
+    runCLI('build', tempDir);
+
+    const promptPath = join(tempDir, '.github/prompts/daedalion-openspec-cycle.prompt.md');
+    expect(existsSync(promptPath)).toBe(true);
+
+    const content = readFileSync(promptPath, 'utf-8');
+    expect(content).toContain('OpenSpec cycle coordinator');
+    expect(content).toContain('@openspec-proposal.prompt.md');
+    expect(content).toContain('@openspec-apply.prompt.md');
+    expect(content).toContain('@openspec-archive.prompt.md');
+    expect(content).toContain('openspec view');
+    expect(content).toContain('openspec --help');
   });
 
   it('generates CI workflow', () => {

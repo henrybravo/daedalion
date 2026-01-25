@@ -18,13 +18,26 @@ export function generateSkill(spec, tasks, outputDir, options = {}) {
     ? spec.frontmatter
     : {};
   const frontmatter = { ...baseFrontmatter, ...specFrontmatter };
+  const agentInstructions = typeof specFrontmatter.agent_instructions === 'string'
+    ? specFrontmatter.agent_instructions
+    : null;
 
   const frontmatterYaml = YAML.stringify(frontmatter).trimEnd();
 
   let content = `---
 ${frontmatterYaml}
 ---
-# ${spec.title}
+`;
+
+  if (agentInstructions && agentInstructions.trim()) {
+    content += `# Agent Instructions
+
+${agentInstructions.trimEnd()}
+
+`;
+  }
+
+  content += `# ${spec.title}
 
 ## Requirements
 ${spec.requirements.map(r => `- **${r.name}**: ${r.description}`).join('\n')}

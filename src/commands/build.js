@@ -9,7 +9,7 @@ import { parseProposal } from '../parsers/proposal.js';
 import { parseTasks } from '../parsers/tasks.js';
 import { generateSkill } from '../generators/skill.js';
 import { generateAgent } from '../generators/agent.js';
-import { generatePrompt } from '../generators/prompt.js';
+import { generatePrompt, generateCyclePrompt } from '../generators/prompt.js';
 import { generateWorkflow } from '../generators/workflow.js';
 import { generateInstructions } from '../generators/instructions.js';
 import { generateTools } from '../generators/tools.js';
@@ -85,6 +85,11 @@ export async function build(cwd, options = {}) {
     generatedFiles.push(promptResult);
     logGenerated(promptResult.path, cwd, options);
   }
+
+  // Generate OpenSpec cycle prompt
+  const cyclePromptResult = generateCyclePrompt(outputDir, options);
+  generatedFiles.push(cyclePromptResult);
+  logGenerated(cyclePromptResult.path, cwd, options);
 
   // Generate workflow
   const workflowResult = generateWorkflow(config, outputDir, options);
