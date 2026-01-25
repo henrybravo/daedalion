@@ -9,16 +9,15 @@ export function generateSkill(spec, tasks, outputDir, options = {}) {
 
   const description = generateDescription(spec);
   const keywords = extractKeywords(spec);
-  const tools = extractTools(spec);
 
-  const frontmatter = {
+  const baseFrontmatter = {
     name: spec.domain,
     description: `${description}. Use when working on ${keywords}.`
   };
-
-  if (tools.length > 0) {
-    frontmatter.tools = tools;
-  }
+  const specFrontmatter = spec.frontmatter && typeof spec.frontmatter === 'object'
+    ? spec.frontmatter
+    : {};
+  const frontmatter = { ...baseFrontmatter, ...specFrontmatter };
 
   const frontmatterYaml = YAML.stringify(frontmatter).trimEnd();
 
@@ -90,21 +89,4 @@ function generateAcceptanceCriteria(requirements) {
   }
 
   return criteria.join('\n').trim();
-}
-
-function extractTools(spec) {
-  const tools = [];
-  const frontmatter = spec.frontmatter || {};
-
-  if (frontmatter.tools && Array.isArray(frontmatter.tools)) {
-    for (const tool of frontmatter.tools) {
-      if (typeof tool === 'string') {
-        tools.push({ name: tool });
-      } else if (tool.name) {
-        tools.push(tool);
-      }
-    }
-  }
-
-  return tools;
 }

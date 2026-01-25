@@ -61,6 +61,35 @@ ${original}`;
     expect(content).toContain('outputs:');
   });
 
+  it('passes through custom frontmatter fields to SKILL.md', () => {
+    const specPath = join(tempDir, 'openspec/specs/example/spec.md');
+    const original = readFileSync(specPath, 'utf-8');
+
+    const specWithCustomFields = `---
+custom_config:
+  mode: strict
+  timeout: 30
+validation_rules:
+  - name: rule_one
+    expected: success
+---
+${original}`;
+
+    writeFileSync(specPath, specWithCustomFields);
+
+    runCLI('build', tempDir);
+
+    const skillPath = join(tempDir, '.github/skills/example/SKILL.md');
+    const content = readFileSync(skillPath, 'utf-8');
+
+    expect(content).toContain('custom_config:');
+    expect(content).toContain('mode: strict');
+    expect(content).toContain('timeout: 30');
+    expect(content).toContain('validation_rules:');
+    expect(content).toContain('name: rule_one');
+    expect(content).toContain('expected: success');
+  });
+
   it('generates agent from spec domain', () => {
     runCLI('build', tempDir);
 
