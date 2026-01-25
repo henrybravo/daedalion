@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { createTempDir, cleanTempDir, runCLI } from './helpers.js';
 
@@ -30,6 +30,35 @@ describe('daedalion build', () => {
     // Contains requirements from spec
     expect(content).toContain('## Requirements');
     expect(content).toContain('## Acceptance Criteria');
+  });
+
+  it('preserves tools from spec frontmatter in SKILL.md', () => {
+    const specPath = join(tempDir, 'openspec/specs/example/spec.md');
+    const original = readFileSync(specPath, 'utf-8');
+
+    const specWithTools = `---
+tools:
+  - name: my_tool
+    description: Does something
+    inputs:
+      - name: param
+        type: string
+    outputs:
+      - type: dict
+---
+${original}`;
+
+    writeFileSync(specPath, specWithTools);
+
+    runCLI('build', tempDir);
+
+    const skillPath = join(tempDir, '.github/skills/example/SKILL.md');
+    const content = readFileSync(skillPath, 'utf-8');
+
+    expect(content).toContain('tools:');
+    expect(content).toContain('name: my_tool');
+    expect(content).toContain('inputs:');
+    expect(content).toContain('outputs:');
   });
 
   it('generates agent from spec domain', () => {

@@ -1,6 +1,7 @@
 import { ensureDir } from '../utils.js';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
+import YAML from 'yaml';
 
 export function generateSkill(spec, tasks, outputDir, options = {}) {
   const skillDir = join(outputDir, 'skills', spec.domain);
@@ -8,10 +9,21 @@ export function generateSkill(spec, tasks, outputDir, options = {}) {
 
   const description = generateDescription(spec);
   const keywords = extractKeywords(spec);
+  const tools = extractTools(spec);
+
+  const frontmatter = {
+    name: spec.domain,
+    description: `${description}. Use when working on ${keywords}.`
+  };
+
+  if (tools.length > 0) {
+    frontmatter.tools = tools;
+  }
+
+  const frontmatterYaml = YAML.stringify(frontmatter).trimEnd();
 
   let content = `---
-name: ${spec.domain}
-description: ${description}. Use when working on ${keywords}.
+${frontmatterYaml}
 ---
 # ${spec.title}
 
@@ -78,4 +90,21 @@ function generateAcceptanceCriteria(requirements) {
   }
 
   return criteria.join('\n').trim();
+}
+
+function extractTools(spec) {
+  const tools = [];
+  const frontmatter = spec.frontmatter || {};
+
+  if (frontmatter.tools && Array.isArray(frontmatter.tools)) {
+    for (const tool of frontmatter.tools) {
+      if (typeof tool === 'string') {
+        tools.push({ name: tool });
+      } else if (tool.name) {
+        tools.push(tool);
+      }
+    }
+  }
+
+  return tools;
 }
