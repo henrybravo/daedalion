@@ -1,0 +1,29 @@
+# Development files
+test/
+*.test.js
+.claude/
+
+# Temp directories
+tmp/
+trash/
+
+# Backup and temp files
+*.bck
+*.tgz
+
+# Example project (users can run `daedalion init`)
+example-project/
+
+# Docs (available on GitHub)
+docs/
+
+# Git and CI
+.git/
+.github/
+.gitignore
+
+# Editor and OS files
+.vscode/
+.idea/
+*.swp
+.DS_Store

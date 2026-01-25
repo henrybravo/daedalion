@@ -5,6 +5,11 @@
   "bin": {
     "daedalion": "./bin/daedalion.js"
   },
+  "files": [
+    "bin/",
+    "src/",
+    "templates/"
+  ],
   "type": "module",
   "engines": {
     "node": ">=20"

@@ -1,6 +1,11 @@
 # Dependencies
 node_modules/
 
+# temporary files
+tmp/
+temp/
+trash
+
 # Build output
 dist/
 build/
