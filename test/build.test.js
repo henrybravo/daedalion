@@ -8,7 +8,7 @@ describe('daedalion build', () => {
 
   beforeEach(async () => {
     tempDir = await createTempDir();
-    runCLI('init', tempDir);
+    runCLI('init --with-example', tempDir);
   });
 
   afterEach(async () => {

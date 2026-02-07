@@ -54,7 +54,7 @@ output: ./.github
   });
 
   it('respects custom output path', () => {
-    runCLI('init', tempDir);
+    runCLI('init --with-example', tempDir);
 
     // Modify config for custom output
     writeFileSync(join(tempDir, 'daedalion.yaml'), `version: 1
@@ -70,7 +70,7 @@ output: ./custom-output
   });
 
   it('generates validate-only workflow when auto_commit is false', () => {
-    runCLI('init', tempDir);
+    runCLI('init --with-example', tempDir);
 
     writeFileSync(join(tempDir, 'daedalion.yaml'), `version: 1
 target: github
@@ -92,7 +92,7 @@ ci:
   });
 
   it('generates auto-commit workflow when auto_commit is true', () => {
-    runCLI('init', tempDir);
+    runCLI('init --with-example', tempDir);
 
     writeFileSync(join(tempDir, 'daedalion.yaml'), `version: 1
 target: github

@@ -14,13 +14,28 @@ describe('daedalion init', () => {
     await cleanTempDir(tempDir);
   });
 
-  it('creates openspec directory structure', () => {
+  it('creates openspec directory structure without examples by default', () => {
     runCLI('init', tempDir);
 
     // Config file
     expect(existsSync(join(tempDir, 'daedalion.yaml'))).toBe(true);
 
-    // OpenSpec structure
+    // OpenSpec structure - only project.md
+    expect(existsSync(join(tempDir, 'openspec/project.md'))).toBe(true);
+
+    // No example files
+    expect(existsSync(join(tempDir, 'openspec/specs/example/spec.md'))).toBe(false);
+    expect(existsSync(join(tempDir, 'openspec/changes/example-feature/proposal.md'))).toBe(false);
+    expect(existsSync(join(tempDir, 'openspec/changes/example-feature/tasks.md'))).toBe(false);
+  });
+
+  it('creates example files with --with-example flag', () => {
+    runCLI('init --with-example', tempDir);
+
+    // Config file
+    expect(existsSync(join(tempDir, 'daedalion.yaml'))).toBe(true);
+
+    // OpenSpec structure with examples
     expect(existsSync(join(tempDir, 'openspec/project.md'))).toBe(true);
     expect(existsSync(join(tempDir, 'openspec/specs/example/spec.md'))).toBe(true);
     expect(existsSync(join(tempDir, 'openspec/changes/example-feature/proposal.md'))).toBe(true);
@@ -28,7 +43,7 @@ describe('daedalion init', () => {
   });
 
   it('creates valid example spec with requirements', () => {
-    runCLI('init', tempDir);
+    runCLI('init --with-example', tempDir);
 
     const specContent = readFileSync(
       join(tempDir, 'openspec/specs/example/spec.md'),
@@ -41,7 +56,7 @@ describe('daedalion init', () => {
   });
 
   it('creates valid config with defaults', () => {
-    runCLI('init', tempDir);
+    runCLI('init --with-example', tempDir);
 
     const configContent = readFileSync(
       join(tempDir, 'daedalion.yaml'),
@@ -55,14 +70,14 @@ describe('daedalion init', () => {
   });
 
   it('does not overwrite existing files', () => {
-    runCLI('init', tempDir);
+    runCLI('init --with-example', tempDir);
 
     // Modify a file
     const configPath = join(tempDir, 'daedalion.yaml');
     const original = readFileSync(configPath, 'utf-8');
 
     // Run init again - should warn but not overwrite
-    const output = runCLI('init', tempDir);
+    const output = runCLI('init --with-example', tempDir);
 
     expect(output).toContain('already exists');
     expect(readFileSync(configPath, 'utf-8')).toBe(original);

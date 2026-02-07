@@ -40,6 +40,7 @@ program
   .command('init')
   .description('Scaffold config + example spec')
   .option('--target <mode>', 'Agent target mode: ide or sdk')
+  .option('--with-example', 'Include example spec and change files')
   .action(async (options) => {
     try {
       await init(process.cwd(), options);

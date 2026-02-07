@@ -14,7 +14,7 @@ export async function init(cwd, options = {}) {
 
   const templatesDir = join(__dirname, '../../templates/init');
   const files = getAllFiles(templatesDir);
-  const { agentTarget } = options;
+  const { agentTarget, withExample } = options;
 
   let created = 0;
   let skipped = 0;
@@ -22,6 +22,11 @@ export async function init(cwd, options = {}) {
   for (const file of files) {
     const relativePath = relative(templatesDir, file);
     const targetPath = join(cwd, relativePath);
+
+    // Skip example files if --with-example not provided
+    if (!withExample && isExampleFile(relativePath)) {
+      continue;
+    }
 
     if (existsSync(targetPath)) {
       console.log(chalk.yellow(`  ⚠ ${relativePath} already exists, skipping`));
@@ -85,4 +90,12 @@ function getAllFiles(dir, files = []) {
   }
 
   return files;
+}
+
+function isExampleFile(relativePath) {
+  // Example files are in specs/example/ or changes/example-feature/
+  return relativePath.includes('specs/example/') || 
+         relativePath.includes('specs\\example\\') ||
+         relativePath.includes('changes/example-feature/') ||
+         relativePath.includes('changes\\example-feature\\');
 }
