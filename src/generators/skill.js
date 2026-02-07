@@ -10,14 +10,17 @@ export function generateSkill(spec, tasks, outputDir, options = {}) {
   const description = generateDescription(spec);
   const keywords = extractKeywords(spec);
 
-  const baseFrontmatter = {
-    name: spec.domain,
-    description: `${description}. Use when working on ${keywords}.`
-  };
   const specFrontmatter = spec.frontmatter && typeof spec.frontmatter === 'object'
     ? spec.frontmatter
     : {};
-  const frontmatter = { ...baseFrontmatter, ...specFrontmatter };
+
+  // Build frontmatter, preserving spec frontmatter (including tools) while providing defaults
+  const frontmatter = {
+    name: specFrontmatter.name || spec.domain,
+    description: specFrontmatter.description || `${description}. Use when working on ${keywords}.`,
+    ...specFrontmatter  // Preserve all other frontmatter properties (tools, etc.)
+  };
+
   const agentInstructions = typeof specFrontmatter.agent_instructions === 'string'
     ? specFrontmatter.agent_instructions
     : null;
