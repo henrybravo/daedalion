@@ -1,4 +1,33 @@
-# Daedalion v0.0.1 — Release Notes
+# Daedalion Release Notes
+
+## v0.0.2 (February 7, 2026)
+
+### New Features
+
+**Minimal Init by Default**
+- `daedalion init` now creates a minimal project structure (config + project.md only)
+- Use `--with-example` flag to include example specs and change files
+- Reduces clutter for users who want to start fresh without example boilerplate
+
+**Tool Definition Preservation**
+- Tool definitions in spec.md YAML frontmatter are now preserved in generated SKILL.md files
+- Enables single source of truth for tool contracts in specs
+- Supports full IDE context and agent guidance with tool definitions
+- Custom frontmatter fields are also preserved (e.g., `custom_config`, `validation_rules`)
+
+### Breaking Changes
+
+- `daedalion init` no longer creates example files by default
+  - **Migration**: Use `daedalion init --with-example` to get the previous behavior
+
+### Bug Fixes
+
+- Fixed issue where tool definitions from spec YAML frontmatter were not included in generated SKILL.md
+- Improved frontmatter merging to preserve all spec properties
+
+---
+
+## v0.0.1 — Initial Release
 
 ## Summary
 

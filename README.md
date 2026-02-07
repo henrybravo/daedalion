@@ -61,10 +61,11 @@ flowchart LR
 
 ```bash
 npm install -g openspec daedalion
-openspec init          # creates openspec/ + AGENTS.md
-daedalion init         # adds daedalion.yaml + example specs
-daedalion build        # generates Copilot artifacts (agents, skills, prompts)
-daedalion validate     # checks specs ↔ artifacts are in sync
+openspec init                # creates openspec/ + AGENTS.md
+daedalion init               # adds daedalion.yaml + project.md (minimal)
+daedalion init --with-example # includes example specs and changes
+daedalion build              # generates Copilot artifacts (agents, skills, prompts)
+daedalion validate           # checks specs ↔ artifacts are in sync
 ```
 
 Use the coordinator by asking your AI: “Help me work through the OpenSpec cycle.”
@@ -84,7 +85,16 @@ Use the coordinator by asking your AI: “Help me work through the OpenSpec cycl
 
 ## Commands
 
-- `daedalion init` - Scaffolds a new project with example specs:
+- `daedalion init` - Scaffolds a new project:
+
+```
+project/
+├── daedalion.yaml
+└── openspec/
+    └── project.md
+```
+
+  Add `--with-example` to include example specs and changes:
 
 ```
 project/
