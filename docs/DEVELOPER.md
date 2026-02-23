@@ -10,11 +10,15 @@
 git clone https://github.com/henrybravo/daedalion.git
 cd daedalion
 npm install
+npm run build    # compile TypeScript to dist/
 ```
 
 ## Running Locally
 
 ```bash
+# Build first (required — CLI imports from dist/)
+npm run build
+
 # Run CLI directly
 node bin/daedalion.js init
 node bin/daedalion.js build
@@ -29,37 +33,42 @@ daedalion init  # now works globally
 ## Testing
 
 ```bash
-npm test              # Run all tests
+npm test              # Run all tests (48 tests)
 npm run test:watch    # Watch mode
 npm run test:coverage # With coverage
+npm run typecheck     # Type check without emitting
 ```
 
 ## Project Structure
 
 ```
 daedalion/
-├── bin/daedalion.js          # CLI entry point (Commander)
+├── bin/daedalion.js          # CLI entry point (Commander, plain JS shim)
 ├── src/
-│   ├── index.js              # Public exports
-│   ├── config.js             # Load daedalion.yaml
-│   ├── utils.js              # ensureDir, helpers
+│   ├── types.ts              # Shared interfaces (GeneratedFile, Spec, etc.)
+│   ├── index.ts              # Public exports + type re-exports
+│   ├── config.ts             # Load daedalion.yaml, validate config
+│   ├── utils.ts              # ensureDir, helpers
+│   ├── version.ts            # VERSION const, getVersionString()
 │   ├── commands/
-│   │   ├── init.js           # Copy templates to target
-│   │   ├── build.js          # Parse specs → generate output
-│   │   ├── validate.js       # Check sync rules
-│   │   └── clean.js          # Remove generated files via manifest
+│   │   ├── init.ts           # Copy templates to target
+│   │   ├── build.ts          # Parse specs → generate output
+│   │   ├── validate.ts       # Check sync rules
+│   │   └── clean.ts          # Remove generated files via manifest
 │   ├── parsers/
-│   │   ├── spec.js           # spec.md → { domain, requirements[] }
-│   │   ├── proposal.js       # proposal.md → { title, why, what }
-│   │   └── tasks.js          # tasks.md → { items[], hasMore }
+│   │   ├── spec.ts           # spec.md → { domain, requirements[] }
+│   │   ├── proposal.ts       # proposal.md → { title, why, what }
+│   │   └── tasks.ts          # tasks.md → { items[], hasMore }
 │   └── generators/
-│       ├── skill.js          # → .github/skills/{domain}/SKILL.md
-│       ├── agent.js          # → .github/agents/{domain}.agent.md
-│       ├── prompt.js         # → .github/prompts/{change}.prompt.md
-│       ├── workflow.js       # → .github/workflows/daedalion.yml
-│       └── instructions.js   # → .github/copilot-instructions.md
+│       ├── skill.ts          # → .github/skills/{domain}/SKILL.md
+│       ├── agent.ts          # → .github/agents/{domain}.agent.md
+│       ├── prompt.ts         # → .github/prompts/{change}.prompt.md
+│       ├── workflow.ts       # → .github/workflows/daedalion.yml
+│       ├── instructions.ts   # → .github/copilot-instructions.md
+│       └── tools.ts          # → tool stubs (Python/JavaScript)
+├── dist/                     # Compiled JS + declarations (git-ignored)
 ├── templates/init/           # Scaffold templates for `daedalion init`
-├── test/                     # Vitest test suite
+├── test/                     # Vitest test suite (.ts files)
 └── docs/                     # Extended documentation
 ```
 
@@ -88,14 +97,15 @@ Note: Copilot reads AGENTS.md natively, so we don't duplicate it.
 
 ## Adding a New Command
 
-1. Create `src/commands/yourcommand.js`:
+1. Create `src/commands/yourcommand.ts`:
 
-```javascript
+```typescript
 import chalk from 'chalk';
 import { VERSION } from '../version.js';
 import { loadConfig } from '../config.js';
+import type { BuildOptions } from '../types.js';
 
-export async function yourcommand(cwd, options = {}) {
+export async function yourcommand(cwd: string, options: BuildOptions = {}): Promise<void> {
   console.log(chalk.bold(`  Daedalion v${VERSION} - YourCommand`));
   const config = loadConfig(cwd);
   // ... implementation
@@ -116,14 +126,19 @@ program
 
 ## Adding a New Generator
 
-1. Create `src/generators/yourgen.js`:
+1. Create `src/generators/yourgen.ts`:
 
-```javascript
+```typescript
 import { writeFileSync } from 'fs';
 import { join } from 'path';
 import { ensureDir } from '../utils.js';
+import type { GeneratedFile, BuildOptions } from '../types.js';
 
-export function generateYourThing(data, outputDir, options = {}) {
+export function generateYourThing(
+  data: { something: string },
+  outputDir: string,
+  options: BuildOptions = {}
+): GeneratedFile {
   const outputPath = join(outputDir, 'your-file.md');
   const content = `# Generated\n\n${data.something}`;
 
@@ -137,9 +152,9 @@ export function generateYourThing(data, outputDir, options = {}) {
 }
 ```
 
-2. Call from `src/commands/build.js`:
+2. Call from `src/commands/build.ts`:
 
-```javascript
+```typescript
 const result = generateYourThing(data, outputDir, options);
 generatedFiles.push(result);
 logGenerated(result.path, cwd, options);
@@ -232,22 +247,24 @@ console.log(chalk.gray(`    (hint text)`));
 
 1. **Simple over clever** — String templates, not template engines
 2. **Explicit over magic** — Manifest tracks what we generate
-3. **Safe by default** — `clean` requires manifest, won't delete unknowns
+3. **Safe by default** — `clean` validates manifest, won't delete unknowns or files outside output dir
 4. **Minimal dependencies** — Only what's needed (commander, yaml, chalk, glob, gray-matter)
 5. **ES Modules** — Modern JavaScript, async/await throughout
+6. **Strict TypeScript** — All parameters and returns typed, shared interfaces in `src/types.ts`
+7. **Security by default** — Path traversal protection, config validation, safe child_process usage
 
 ## Testing Tips
 
-Test files live in `test/` with `.test.js` suffix:
+Test files live in `test/` with `.test.ts` suffix:
 
-```javascript
+```typescript
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 
 describe('build', () => {
-  let testDir;
+  let testDir: string;
 
   beforeEach(() => {
     testDir = mkdtempSync(join(tmpdir(), 'daedalion-test-'));
@@ -268,15 +285,15 @@ describe('build', () => {
 
 ### Version Source
 
-Version is centralized in `package.json` and imported via `src/version.js`:
+Version is centralized in `package.json` and imported via `src/version.ts`:
 
 | File | Purpose |
 |------|---------|
 | `package.json` | Single source of truth for version |
-| `src/version.js` | Exports `VERSION` and `getVersionString()` |
+| `src/version.ts` | Exports `VERSION` and `getVersionString()` |
 
-All commands import from `version.js`:
-```javascript
+All commands import from `version.ts`:
+```typescript
 import { VERSION } from '../version.js';
 console.log(chalk.bold(`  Daedalion v${VERSION}`));
 ```
@@ -341,9 +358,9 @@ npm publish --tag next
 ### Debug a parser
 
 ```bash
-node -e "
-  import { parseSpec } from './src/parsers/spec.js';
-  console.log(JSON.stringify(parseSpec('./openspec/specs/example/spec.md'), null, 2));
+npx tsx -e "
+import { parseSpec } from './src/parsers/spec.js';
+console.log(JSON.stringify(parseSpec('./openspec/specs/example/spec.md'), null, 2));
 "
 ```
 

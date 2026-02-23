@@ -1,12 +1,15 @@
 # Daedalion
 
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://img.shields.io/npm/v/daedalion)](https://www.npmjs.com/package/daedalion)
 
 Spec-to-Agent compiler for GitHub Copilot. Write specs; get agents, skills, and prompts — all kept in sync with your source of truth.
 
 > *"Write specs, get agents automatically."*
+
+Written in **TypeScript** with strict mode. Ships compiled JS + type declarations.
 
 ![daedalion-init](docs/assets/daedalion-init.png)
 
@@ -136,6 +139,8 @@ project/
 - Generated output details: [docs/generated-output.md](docs/generated-output.md)
 - CI setup and options: [docs/ci-workflow.md](docs/ci-workflow.md)
 - Developer notes: [docs/DEVELOPER.md](docs/DEVELOPER.md)
+- TypeScript migration plan: [docs/TYPESCRIPT_MIGRATION_PLAN.md](docs/TYPESCRIPT_MIGRATION_PLAN.md)
+- Release notes: [RELEASE.md](RELEASE.md)
 
 ## License
 

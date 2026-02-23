@@ -1,5 +1,53 @@
 # Daedalion Release Notes
 
+## v0.1.0 (February 23, 2026)
+
+### Highlights
+
+Daedalion is now written in **TypeScript** with strict mode enabled. This release includes a complete port of all source modules, shared type definitions, security hardening, and a bug fix — with zero changes to runtime behaviour. All 48 tests pass.
+
+### New Features
+
+**Full TypeScript Codebase**
+- All 16 source modules ported to strict TypeScript (`ES2022`, `Node16`).
+- All 8 test files ported to TypeScript.
+- Shared type definitions exported via `src/types.ts` — consumers get full type safety.
+- Compiled output ships in `dist/`; type declarations (`.d.ts`) included.
+
+**Type-Safe Public API**
+- All interfaces exported: `GeneratedFile`, `BuildOptions`, `InitOptions`, `Spec`, `Requirement`, `Scenario`, `Proposal`, `TasksSummary`, `ToolDef`, `DaedalionConfig`, `Manifest`, `ValidationError`, `ParsedChange`, `ChangeReference`.
+- `package.json` includes `types` and `exports` fields for proper IDE resolution.
+
+**CI Workflow**
+- Added `.github/workflows/ci.yml` — runs type check, build, and tests on Node 20 and 22.
+
+### Bug Fixes
+
+- **Fixed `generateJavaScriptStub`**: The function was called in `tools.ts` but never defined, causing a runtime crash when generating JavaScript tool stubs. It is now fully implemented with JSDoc annotations.
+- **Unsupported tool language**: `generateToolStub` now throws a descriptive error instead of returning `undefined` for unknown languages.
+
+### Security Improvements
+
+- **Path traversal protection**: `safePath()` in `config.ts` validates that resolved `openspec` and `output` paths do not escape the project root.
+- **Config validation**: `validateConfig()` checks schema version, `agents.target` enum, non-empty strings, and warns on unknown keys.
+- **Manifest integrity**: `clean` command now validates manifest schema (`version` is number, `files` is `string[]`) and refuses to delete files outside the configured output directory.
+- **Safer `execSync`**: Git commands in `version.ts` use `timeout: 5000` and `windowsHide: true`.
+- **Node version guard**: CLI entry point checks `process.versions.node >= 20` at startup.
+
+### Developer Experience
+
+- New scripts: `npm run build` (tsc), `npm run typecheck` (tsc --noEmit), `npm run dev` (tsx).
+- `prepublishOnly` runs build + test automatically.
+- `vitest.config.ts` supports both `.ts` and `.js` test files.
+
+### Breaking Changes
+
+- **Source files moved**: `src/*.js` → `src/*.ts`. If you imported directly from `src/`, update paths or import from the package root (recommended).
+- **Published files changed**: Package now ships `dist/` instead of `src/`. The public API (`import { ... } from 'daedalion'`) is unchanged.
+- **Node.js >= 20 enforced at runtime** (previously only declared in `engines`).
+
+---
+
 ## v0.0.2 (February 7, 2026)
 
 ### New Features

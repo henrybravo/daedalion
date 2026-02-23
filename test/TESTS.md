@@ -1,6 +1,6 @@
-# Daedalion v0.0.1 — Test Specifications
+# Daedalion v0.1.0 — Test Specifications
 
-> MVP test suite. Run with `npm test` (vitest).
+> 48 tests across 7 files. Run with `npm test` (vitest).
 
 ## Test Philosophy
 

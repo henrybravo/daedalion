@@ -1,6 +1,6 @@
 {
   "name": "daedalion",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "OpenSpec-to-Agent compiler for GitHub Copilot",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

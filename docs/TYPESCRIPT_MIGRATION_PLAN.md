@@ -1,7 +1,7 @@
 # TypeScript Migration Plan
 
 > **Branch:** `feature/typescript-port`
-> **Status:** Planning
+> **Status:** ✅ Complete (v0.1.0)
 > **Node:** >=20 (keep current engine requirement)
 
 ---
@@ -368,14 +368,14 @@ jobs:
 
 ## 10. Definition of Done
 
-- [ ] All 16 source files ported to `.ts` with strict types.
-- [ ] `src/types.ts` contains all shared interfaces.
-- [ ] `npx tsc` compiles with zero errors.
-- [ ] All existing tests pass (`npm test`).
-- [ ] `generateJavaScriptStub` bug is resolved.
-- [ ] Path traversal guards added to config/output resolution.
-- [ ] Config validation added to `loadConfig`.
-- [ ] Manifest validation added to `clean`.
-- [ ] `bin/daedalion.js` updated to import from `dist/`.
-- [ ] CI runs typecheck + build + test.
-- [ ] `npm pack` produces a working package with type declarations.
+- [x] All 16 source files ported to `.ts` with strict types.
+- [x] `src/types.ts` contains all shared interfaces.
+- [x] `npx tsc` compiles with zero errors.
+- [x] All existing tests pass (`npm test`) — 48/48.
+- [x] `generateJavaScriptStub` bug is resolved.
+- [x] Path traversal guards added to config/output resolution.
+- [x] Config validation added to `loadConfig`.
+- [x] Manifest validation added to `clean`.
+- [x] `bin/daedalion.js` updated to import from `dist/`.
+- [x] CI runs typecheck + build + test.
+- [x] `npm pack` produces a working package with type declarations.

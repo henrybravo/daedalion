@@ -39,24 +39,22 @@ The package.json `files` field controls what gets included in the published pack
 ```json
 {
   "files": [
-    "src/",
     "bin/",
-    "templates/",
-    "docs/",
-    "LICENSE"
+    "dist/",
+    "templates/"
   ]
 }
 ```
 
 **What gets packaged:**
-- Source code (`src/`)
+- Compiled JavaScript + type declarations (`dist/`)
 - CLI entry point (`bin/`)
 - Template files (`templates/`)
-- Documentation (`docs/`)
-- License file
 
 **What does NOT get packaged:**
+- TypeScript source (`src/`)
 - Test files (`test/`)
+- Documentation (`docs/`)
 - Development scripts
 - `.gitignore`
 - Local config files
@@ -163,6 +161,8 @@ jobs:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
+      - run: npm run build
+      - run: npm test
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
