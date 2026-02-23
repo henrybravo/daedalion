@@ -1,12 +1,18 @@
 #!/usr/bin/env node
 
+const [major] = process.versions.node.split('.').map(Number);
+if (major < 20) {
+  console.error('Daedalion requires Node.js >= 20');
+  process.exit(1);
+}
+
 import { program } from 'commander';
 import chalk from 'chalk';
-import { init } from '../src/commands/init.js';
-import { build } from '../src/commands/build.js';
-import { validate } from '../src/commands/validate.js';
-import { clean } from '../src/commands/clean.js';
-import { VERSION, getVersionString } from '../src/version.js';
+import { init } from '../dist/commands/init.js';
+import { build } from '../dist/commands/build.js';
+import { validate } from '../dist/commands/validate.js';
+import { clean } from '../dist/commands/clean.js';
+import { VERSION, getVersionString } from '../dist/version.js';
 
 function displayLogo() {
   const logo = `

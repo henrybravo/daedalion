@@ -2,12 +2,20 @@
   "name": "daedalion",
   "version": "0.0.2",
   "description": "OpenSpec-to-Agent compiler for GitHub Copilot",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "bin": {
     "daedalion": "./bin/daedalion.js"
   },
   "files": [
     "bin/",
-    "src/",
+    "dist/",
     "templates/"
   ],
   "type": "module",
@@ -15,9 +23,13 @@
     "node": ">=20"
   },
   "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "npm run build && npm test",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "openspec",
@@ -36,6 +48,9 @@
     "yaml": "^2.3.0"
   },
   "devDependencies": {
+    "@types/node": "^25.3.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
     "vitest": "^1.0.0"
   }
 }
