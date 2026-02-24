@@ -76,6 +76,17 @@ describe('daedalion init', () => {
     expect(output).toContain('daedalion build');
   });
 
+  it('installs daedalion-compile.prompt.md for spec compilation', () => {
+    runCLI('init', tempDir);
+
+    const promptPath = join(tempDir, '.github/prompts/daedalion-compile.prompt.md');
+    expect(existsSync(promptPath)).toBe(true);
+
+    const content = readFileSync(promptPath, 'utf-8');
+    expect(content).toContain('daedalion build');
+    expect(content).toContain('description:');
+  });
+
   it('does not overwrite existing files', () => {
     runCLI('init --with-example', tempDir);
 
