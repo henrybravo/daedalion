@@ -9,12 +9,17 @@ openspec/
 ├── project.md              # Project context → copilot-instructions.md
 ├── specs/
 │   └── {domain}/
-│       └── spec.md         # Domain specs → skills + agents
+│       └── spec.md         # Canonical domain specs → skills + agents
 └── changes/
     └── {change-name}/
         ├── proposal.md     # Change proposal → prompts
-        └── tasks.md        # Task breakdown (optional, included in prompts)
+        ├── tasks.md        # Task breakdown (optional, included in prompts)
+        └── specs/
+            └── {domain}/
+                └── spec.md # Delta specs → skills + agents (if no canonical)
 ```
+
+Daedalion discovers specs from both `openspec/specs/` (canonical) and `openspec/changes/*/specs/` (delta). Canonical specs take priority when the same domain exists in both locations. This means `daedalion build` works correctly both before and after running `/opsx:archive`.
 
 ## Specification Format
 
@@ -95,6 +100,8 @@ Add OTP verification after password login.
 
 Tasks are summarized (max 10 items) and included in generated prompts.
 
+> **Line endings:** All parsers accept both LF (`\n`) and CRLF (`\r\n`) files. Files created on Windows or by tools that produce CRLF line endings are parsed correctly.
+
 ## Project Context
 
 **File:** `openspec/project.md`
@@ -107,7 +114,6 @@ This file contains project-wide context and conventions. Its content is included
 ## Tech Stack
 - Node.js 20+
 - TypeScript
-- PostgreSQL
 
 ## Conventions
 - Use async/await over callbacks

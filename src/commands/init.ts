@@ -70,8 +70,12 @@ export async function init(cwd: string, options: InitOptions = {}): Promise<void
 
   console.log();
   console.log('  Next steps:');
-  console.log('    1. Edit openspec/specs/example/spec.md with your specifications');
-  console.log('    2. Run `daedalion build` to generate GitHub Copilot artifacts');
+  if (withExample) {
+    console.log('    1. Edit openspec/specs/example/spec.md with your specifications');
+    console.log('    2. Run `daedalion build` to generate GitHub Copilot artifacts');
+  } else {
+    console.log('    1. Run `daedalion build` to generate GitHub Copilot artifacts');
+  }
   console.log();
 }
 

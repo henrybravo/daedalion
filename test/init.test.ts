@@ -59,6 +59,21 @@ describe('daedalion init', () => {
     expect(configContent).toContain('target: github');
     expect(configContent).toContain('openspec: ./openspec');
     expect(configContent).toContain('output: ./.github');
+    expect(configContent).toContain('enabled: false');
+  });
+
+  it('does not mention example spec in next steps without --with-example', () => {
+    const output = runCLI('init', tempDir);
+
+    expect(output).not.toContain('openspec/specs/example/spec.md');
+    expect(output).toContain('daedalion build');
+  });
+
+  it('mentions example spec in next steps with --with-example', () => {
+    const output = runCLI('init --with-example', tempDir);
+
+    expect(output).toContain('openspec/specs/example/spec.md');
+    expect(output).toContain('daedalion build');
   });
 
   it('does not overwrite existing files', () => {

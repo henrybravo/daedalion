@@ -3,16 +3,6 @@ target: github
 openspec: ./openspec
 output: ./.github
 
-# Optional
-# project_name: my-project
-# constitution: ./CONSTITUTION.md
-
-# CI behavior
 ci:
+  enabled: false      # set to true to generate .github/workflows/daedalion.yml
   auto_commit: false
-  commit_message: 'chore: regenerate agents from specs'
-
-# Agent output configuration
-agents:
-  target: ide  # 'ide' or 'sdk'
-  tools: null  # null to use IDE defaults, or array of custom tool names

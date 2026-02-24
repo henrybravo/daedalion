@@ -1,6 +1,6 @@
 # Daedalion - Complete Reference
 
-This document provides comprehensive documentation for Daedalion, the OpenSpec-to-Agent compiler for GitHub Copilot. For a quick overview, see the main [README.md](../README.md).
+This document provides comprehensive documentation for Daedalion, the Spec-to-Agent compiler for GitHub Copilot. For a quick overview, see the main [README.md](../README.md).
 
 ## Table of Contents
 
