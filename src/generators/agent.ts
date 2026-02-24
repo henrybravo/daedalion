@@ -23,7 +23,15 @@ export function generateAgent(
     tools = specTools.length > 0 ? specTools.map(t => t.name) : (agentConfig.tools || []);
     workflow = generateSDKWorkflow(spec, tools);
   } else {
-    tools = ['edit', 'search', 'terminal'];
+    // IDE mode — use valid GitHub Copilot tool aliases
+    // 'execute' is the correct alias for terminal/shell access (replaces invalid 'terminal')
+    // Spec frontmatter 'agent_tools' overrides the defaults for this domain
+    const frontmatterTools = spec.frontmatter?.agent_tools;
+    if (Array.isArray(frontmatterTools) && frontmatterTools.length > 0) {
+      tools = frontmatterTools.filter((t): t is string => typeof t === 'string');
+    } else {
+      tools = ['edit', 'search', 'execute'];
+    }
     workflow = generateIDEWorkflow(spec);
   }
 

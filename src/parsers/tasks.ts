@@ -11,7 +11,7 @@ export function parseTasks(tasksPath: string, maxItems: number = 10): TasksSumma
 }
 
 export function summarizeTasks(content: string, maxItems: number = 10): TasksSummary {
-  const lines: string[] = content.split('\n');
+  const lines: string[] = content.split(/\r?\n/);
   const groups: string[] = [];
   const items: string[] = [];
   let currentGroup: string | null = null;

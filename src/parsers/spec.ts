@@ -8,7 +8,7 @@ export function parseSpec(specPath: string): Spec {
   const { data: frontmatter, content: body } = matter(content);
 
   const domain: string = basename(dirname(specPath));
-  const title: string = extractTitle(body);
+  const title: string = extractTitle(body) ?? domain.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   const requirements: Requirement[] = extractRequirements(body);
 
   return {
@@ -20,14 +20,14 @@ export function parseSpec(specPath: string): Spec {
   };
 }
 
-function extractTitle(content: string): string {
+function extractTitle(content: string): string | null {
   const match: RegExpMatchArray | null = content.match(/^#\s+(.+)$/m);
-  return match ? match[1].trim() : 'Untitled Specification';
+  return match ? match[1].trim() : null;
 }
 
 function extractRequirements(content: string): Requirement[] {
   const requirements: Requirement[] = [];
-  const lines: string[] = content.split('\n');
+  const lines: string[] = content.split(/\r?\n/);
 
   let currentRequirement: Requirement | null = null;
   let currentScenario: Scenario | null = null;

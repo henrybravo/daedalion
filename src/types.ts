@@ -83,6 +83,7 @@ export interface DaedalionConfig {
   openspec: string;
   output: string;
   ci: {
+    enabled?: boolean;
     auto_commit: boolean;
     commit_message: string;
   };

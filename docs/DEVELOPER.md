@@ -33,7 +33,7 @@ daedalion init  # now works globally
 ## Testing
 
 ```bash
-npm test              # Run all tests (48 tests)
+npm test              # Run all tests (92 tests: unit + scenario integration, v0.3.1)
 npm run test:watch    # Watch mode
 npm run test:coverage # With coverage
 npm run typecheck     # Type check without emitting
@@ -60,26 +60,37 @@ daedalion/
 │   │   ├── proposal.ts       # proposal.md → { title, why, what }
 │   │   └── tasks.ts          # tasks.md → { items[], hasMore }
 │   └── generators/
-│       ├── skill.ts          # → .github/skills/{domain}/SKILL.md
-│       ├── agent.ts          # → .github/agents/{domain}.agent.md
-│       ├── prompt.ts         # → .github/prompts/{change}.prompt.md
-│       ├── workflow.ts       # → .github/workflows/daedalion.yml
-│       ├── instructions.ts   # → .github/copilot-instructions.md
-│       └── tools.ts          # → tool stubs (Python/JavaScript)
+│       ├── skill.ts                  # → .github/skills/{domain}/SKILL.md
+│       ├── agent.ts                  # → .github/agents/{domain}.agent.md
+│       ├── agents-index.ts           # → .github/AGENTS.md (discovery index)
+│       ├── pattern-instructions.ts   # → .github/instructions/{domain}.instructions.md
+│       ├── prompt.ts                 # → .github/prompts/{change}.prompt.md
+│       ├── workflow.ts               # → .github/workflows/daedalion.yml
+│       ├── instructions.ts           # → .github/copilot-instructions.md
+│       └── tools.ts                  # → tool stubs (Python/JavaScript)
 ├── dist/                     # Compiled JS + declarations (git-ignored)
 ├── templates/init/           # Scaffold templates for `daedalion init`
-├── test/                     # Vitest test suite (.ts files)
+├── test/                     # Vitest unit tests (.ts files)
+├── features-tests/           # Scenario integration tests with fixture files
+│   ├── scenario-a-openspec-active/   # OpenSpec 1.2.0 active change (delta specs)
+│   ├── scenario-b-manual-specs/      # Greenfield: hand-written specs at canonical path
+│   ├── scenario-c-post-archive/      # Post-archive: specs at canonical path after merge
+│   ├── scenario-d-brownfield/        # Brownfield: reverse-engineered specs
+│   └── scenario-e-mid-openspec/      # Mid-OpenSpec: requires user-provided fixtures
 └── docs/                     # Extended documentation
 ```
 
 ## Data Flow
 
 ```
-openspec/specs/{domain}/spec.md
+openspec/specs/{domain}/spec.md            ← canonical path (takes priority)
+openspec/changes/*/specs/{domain}/spec.md  ← delta path (used if no canonical)
         ↓ parseSpec()
 { domain, title, requirements[] }
-        ↓ generateSkill(), generateAgent()
-.github/skills/{domain}/SKILL.md
+        ↓ generateSkill()            → returns GeneratedFile[]
+.github/skills/{domain}/SKILL.md   ← hub: compact requirements list + spoke links
+.github/skills/{domain}/{req}.md   ← spoke per requirement (scenario details)
+        ↓ generateAgent()
 .github/agents/{domain}.agent.md
 
 openspec/changes/{name}/proposal.md + tasks.md
@@ -92,7 +103,13 @@ openspec/project.md
         ↓ generateInstructions()
 .github/copilot-instructions.md
 
-Note: Copilot reads AGENTS.md natively, so we don't duplicate it.
+specs (all domains)
+        ↓ generateAgentsIndex()
+.github/AGENTS.md               ← discovery index for all compiled agents
+
+spec (per domain)
+        ↓ generatePatternInstructions()
+.github/instructions/{domain}.instructions.md   ← applyTo:"**" domain context
 ```
 
 ## Adding a New Command
@@ -255,7 +272,22 @@ console.log(chalk.gray(`    (hint text)`));
 
 ## Testing Tips
 
-Test files live in `test/` with `.test.ts` suffix:
+Unit test files live in `test/` with `.test.ts` suffix. Integration scenario tests live in `features-tests/`:
+
+```bash
+# Run all tests
+npm test
+
+# Run only unit tests
+npx vitest run test/
+
+# Run only scenario tests
+npx vitest run features-tests/
+```
+
+**Fixture files** in `features-tests/*/fixtures/` may use either LF or CRLF line endings. Parsers normalize CRLF via `split(/\r?\n/)`.
+
+Unit test files use `.test.ts` suffix:
 
 ```typescript
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';

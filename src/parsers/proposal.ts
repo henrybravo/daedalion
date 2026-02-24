@@ -8,7 +8,7 @@ export function parseProposal(proposalPath: string): Proposal {
   const { data: frontmatter, content: body } = matter(content);
 
   const changeName: string = basename(dirname(proposalPath));
-  const title: string = extractTitle(body);
+  const title: string = extractTitle(body) ?? toTitleCase(changeName);
   const why: string | null = extractSection(body, 'Why');
   const what: string | null = extractSection(body, 'What');
 
@@ -22,20 +22,26 @@ export function parseProposal(proposalPath: string): Proposal {
   };
 }
 
-function extractTitle(content: string): string {
+function extractTitle(content: string): string | null {
   const match: RegExpMatchArray | null = content.match(/^#\s+(.+)$/m);
-  return match ? match[1].trim() : 'Untitled Proposal';
+  return match ? match[1].trim() : null;
+}
+
+function toTitleCase(kebab: string): string {
+  return kebab.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
 function extractSection(content: string, sectionName: string): string | null {
-  const lines: string[] = content.split('\n');
+  const lines: string[] = content.split(/\r?\n/);
   let inSection = false;
   const sectionContent: string[] = [];
 
   for (const line of lines) {
     const sectionMatch: RegExpMatchArray | null = line.match(/^##\s+(.+)$/);
     if (sectionMatch) {
-      if (sectionMatch[1].toLowerCase() === sectionName.toLowerCase()) {
+      const heading = sectionMatch[1].toLowerCase();
+      const name = sectionName.toLowerCase();
+      if (heading === name || heading.startsWith(name + ' ') || heading.startsWith(name + ':')) {
         inSection = true;
         continue;
       } else if (inSection) {

@@ -2,19 +2,18 @@ import { ensureDir } from '../utils.js';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
 import YAML from 'yaml';
-import type { GeneratedFile, BuildOptions, Spec, Requirement, TasksSummary } from '../types.js';
+import type { GeneratedFile, BuildOptions, Spec, Requirement, Scenario, TasksSummary } from '../types.js';
 
 export function generateSkill(
   spec: Spec,
   tasks: TasksSummary | null,
   outputDir: string,
   options: BuildOptions = {},
-): GeneratedFile {
+): GeneratedFile[] {
   const skillDir = join(outputDir, 'skills', spec.domain);
   const skillPath = join(skillDir, 'SKILL.md');
 
   const description = generateDescription(spec);
-  const keywords = extractKeywords(spec);
 
   const specFrontmatter: Record<string, unknown> =
     spec.frontmatter && typeof spec.frontmatter === 'object'
@@ -23,9 +22,7 @@ export function generateSkill(
 
   const frontmatter: Record<string, unknown> = {
     name: (specFrontmatter.name as string) || spec.domain,
-    description:
-      (specFrontmatter.description as string) ||
-      `${description}. Use when working on ${keywords}.`,
+    description: (specFrontmatter.description as string) || description,
     ...specFrontmatter,
   };
 
@@ -34,7 +31,12 @@ export function generateSkill(
       ? specFrontmatter.agent_instructions
       : null;
 
-  const frontmatterYaml = YAML.stringify(frontmatter).trimEnd();
+  const frontmatterYaml = YAML.stringify(frontmatter, null, { lineWidth: 0 }).trimEnd();
+
+  // Determine which requirements get spoke files
+  const requirementsWithScenarios = spec.requirements.filter(
+    (r: Requirement) => r.scenarios.length > 0
+  );
 
   let content = `---
 ${frontmatterYaml}
@@ -55,7 +57,15 @@ ${agentInstructions.trimEnd()}
 ${spec.requirements.map((r: Requirement) => `- **${r.name}**: ${r.description}`).join('\n')}
 
 ## Acceptance Criteria
-${generateAcceptanceCriteria(spec.requirements)}`;
+`;
+
+  if (requirementsWithScenarios.length > 0) {
+    content += requirementsWithScenarios
+      .map((r: Requirement) => `- [${r.name}](./${toSlug(r.name)}.md)`)
+      .join('\n');
+  } else {
+    content += '_No scenarios defined._';
+  }
 
   if (tasks && tasks.items.length > 0) {
     content += `
@@ -67,51 +77,53 @@ ${tasks.hasMore ? `\n> Full task list: openspec/changes/*/tasks.md` : ''}`;
 
   content += '\n';
 
-  if (options.dryRun) {
-    return { path: skillPath, content };
+  const results: GeneratedFile[] = [];
+
+  if (!options.dryRun) {
+    ensureDir(skillPath);
+    writeFileSync(skillPath, content);
+  }
+  results.push({ path: skillPath, content });
+
+  // Generate one spoke file per requirement that has scenarios
+  for (const req of requirementsWithScenarios) {
+    const spokePath = join(skillDir, `${toSlug(req.name)}.md`);
+    const spokeContent = generateSpoke(req);
+
+    if (!options.dryRun) {
+      ensureDir(spokePath);
+      writeFileSync(spokePath, spokeContent);
+    }
+    results.push({ path: spokePath, content: spokeContent });
   }
 
-  ensureDir(skillPath);
-  writeFileSync(skillPath, content);
-  return { path: skillPath, content };
+  return results;
 }
 
 function generateDescription(spec: Spec): string {
+  const domain = spec.domain;
   if (spec.requirements.length === 0) {
-    return spec.title;
+    return `Use when working on ${domain}`.slice(0, 60);
   }
-
-  const firstReq = spec.requirements[0];
-  const desc = firstReq.description || firstReq.name;
-  return desc.slice(0, 100).replace(/\.$/, '');
+  const reqName = spec.requirements[0].name;
+  return `Use when working on ${domain} - ${reqName}`.slice(0, 60);
 }
 
-function extractKeywords(spec: Spec): string {
-  const words = new Set<string>();
-  words.add(spec.domain);
+function generateSpoke(req: Requirement): string {
+  const lines: string[] = [`# ${req.name}`, ''];
 
-  for (const req of spec.requirements) {
-    const nameWords = req.name.toLowerCase().split(/\s+/);
-    nameWords.forEach((w: string) => {
-      if (w.length > 3) words.add(w);
-    });
-  }
-
-  return Array.from(words).slice(0, 5).join(', ');
-}
-
-function generateAcceptanceCriteria(requirements: Requirement[]): string {
-  const criteria: string[] = [];
-
-  for (const req of requirements) {
-    for (const scenario of req.scenarios) {
-      criteria.push(`### ${scenario.name}`);
-      for (const step of scenario.steps) {
-        criteria.push(`- ${step}`);
-      }
-      criteria.push('');
+  for (const scenario of req.scenarios) {
+    lines.push(`### ${scenario.name}`);
+    for (const step of (scenario as Scenario).steps) {
+      lines.push(`- ${step}`);
     }
+    lines.push('');
   }
 
-  return criteria.join('\n').trim();
+  return lines.join('\n');
+}
+
+/** "User Greeting" → "user-greeting" */
+function toSlug(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }

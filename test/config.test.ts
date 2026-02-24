@@ -74,6 +74,7 @@ target: github
 openspec: ./openspec
 output: ./.github
 ci:
+  enabled: true
   auto_commit: false
 `);
 
@@ -96,6 +97,7 @@ target: github
 openspec: ./openspec
 output: ./.github
 ci:
+  enabled: true
   auto_commit: true
 `);
 

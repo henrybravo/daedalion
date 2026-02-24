@@ -38,7 +38,7 @@ if (!process.argv.includes('--help') && !process.argv.includes('-h')) {
 
 program
   .name('daedalion')
-  .description('OpenSpec-to-Agent compiler for GitHub Copilot')
+  .description('Spec-to-Agent compiler for GitHub Copilot')
   .version(VERSION)
   .helpOption('-h, --help', 'display help for command');
 
