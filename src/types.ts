@@ -113,6 +113,8 @@ export interface ValidationError {
 export interface ParsedChange {
   proposal: Proposal;
   tasks: TasksSummary;
+  /** Delta spec domain names for this change (alphabetical). Empty if no delta specs exist. */
+  domains: string[];
 }
 
 /** Validate-only change reference */

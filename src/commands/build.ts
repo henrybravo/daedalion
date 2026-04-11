@@ -196,7 +196,8 @@ async function findAndParseChanges(openspecDir: string, _options: BuildOptions):
     if (existsSync(proposalPath)) {
       changes.push({
         proposal: parseProposal(proposalPath),
-        tasks: parseTasks(tasksPath)
+        tasks: parseTasks(tasksPath),
+        domains: [],
       });
     }
   }
