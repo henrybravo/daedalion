@@ -1,5 +1,25 @@
 # Daedalion Release Notes
 
+## v0.3.2 (April 11, 2026)
+
+### Bug Fixes
+
+- **`.instructions.md` generation is now opt-in via `file_pattern` frontmatter** — Previously every spec unconditionally generated a `.github/instructions/{domain}.instructions.md` file with `applyTo: "**"`, making it always-on for every file in the workspace. This duplicated context already carried by `copilot-instructions.md` and the skills, bloating every request regardless of relevance. The `*.instructions.md` mechanism is intended for *file-scoped, always-on constraints* — rules that must fire whenever the agent touches a specific part of the codebase. Add `file_pattern: "src/payments/**"` (comma-separated globs accepted) to a spec's YAML frontmatter to opt in; Daedalion will generate the file with `applyTo: "<file_pattern>"`. Specs without `file_pattern` produce no instructions file. The example spec now includes `file_pattern: "src/example/**"` to demonstrate the feature.
+
+- **Skill `description` expanded to 1024 characters** — `generateDescription()` was hard-capping skill descriptions at 60 characters. The official Copilot SKILL.md spec allows 1024 characters, and a short description is the most common reason skills fail to auto-load (the agent cannot determine relevance). Descriptions now include all requirement names and use the format `"<title> - <req1>, <req2>. Use when working on <domain>."`, capped at the 1024-character Copilot limit. A `description:` key in spec frontmatter still overrides the auto-generated value verbatim.
+
+- **Removed spurious `name:` key from `daedalion-compile.prompt.md` init template** — The installed `.github/prompts/daedalion-compile.prompt.md` had a `name: daedalion-compile` frontmatter field. `name:` is not a valid `.prompt.md` frontmatter key (valid keys: `description`, `agent`, `model`, `tools`). The slash command name is derived from the filename, not from frontmatter. The field is now removed.
+
+### Tests
+
+- Updated `test/build.test.ts`: replaced `'generates pattern instructions for each spec domain'` with four new tests covering: no generation without `file_pattern`, correct `applyTo` value, multi-glob patterns, and per-domain selectivity in multi-spec builds.
+- Added `test/build.test.ts`: skill description tests — all requirement names present, length > 60, length ≤ 1024, frontmatter override, truncation branch verification.
+- Added `test/init.test.ts`: asserts `daedalion-compile.prompt.md` frontmatter contains no `name:` key.
+- Updated `features-tests/scenario-a-openspec-active` fixture specs: added `file_pattern` to all 5 delta specs so the scenario continues to test instructions generation end-to-end.
+- Total: 98 tests, all passing.
+
+---
+
 ## v0.3.1 (February 24, 2026)
 
 ### Bug Fixes
