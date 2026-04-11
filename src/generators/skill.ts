@@ -103,10 +103,13 @@ ${tasks.hasMore ? `\n> Full task list: openspec/changes/*/tasks.md` : ''}`;
 function generateDescription(spec: Spec): string {
   const domain = spec.domain;
   if (spec.requirements.length === 0) {
-    return `Use when working on ${domain}`.slice(0, 60);
+    return `Use when working on ${domain}.`;
   }
-  const reqName = spec.requirements[0].name;
-  return `Use when working on ${domain} - ${reqName}`.slice(0, 60);
+  const reqNames = spec.requirements
+    .map(r => r.name.toLowerCase())
+    .join(', ');
+  const description = `${spec.title} - ${reqNames}. Use when working on ${domain}, implementing ${reqNames}.`;
+  return description.slice(0, 1024);
 }
 
 function generateSpoke(req: Requirement): string {

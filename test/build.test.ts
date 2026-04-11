@@ -185,10 +185,43 @@ ${original}`;
     expect(spoke).toContain('Welcome, Alice');
   });
 
-  it('SKILL.md description is discovery-optimized (starts with "Use when")', () => {
+  it('SKILL.md description includes all requirement names and is not truncated at 60 chars', () => {
     runCLI('build', tempDir);
     const content = readFileSync(join(tempDir, '.github/skills/example/SKILL.md'), 'utf-8');
-    expect(content).toMatch(/description: Use when working on example/);
+    // Must mention all requirement names (example spec has User Greeting + Session Management)
+    expect(content).toMatch(/description:.*user greeting/i);
+    expect(content).toMatch(/description:.*session management/i);
+    // Must be longer than the old 60-char cap
+    const descMatch = content.match(/^description: (.+)$/m);
+    expect(descMatch).not.toBeNull();
+    expect(descMatch![1].length).toBeGreaterThan(60);
+    // Must not exceed 1024 chars
+    expect(descMatch![1].length).toBeLessThanOrEqual(1024);
+  });
+
+  it('SKILL.md description uses verbatim frontmatter description when provided', () => {
+    const specPath = join(tempDir, 'openspec/specs/example/spec.md');
+    const original = readFileSync(specPath, 'utf-8');
+    writeFileSync(specPath, `---\ndescription: Hand-crafted description for example domain\n---\n${original}`);
+    runCLI('build', tempDir);
+
+    const content = readFileSync(join(tempDir, '.github/skills/example/SKILL.md'), 'utf-8');
+    expect(content).toContain('Hand-crafted description for example domain');
+    expect(content).not.toContain('Example Specification -');
+  });
+
+  it('SKILL.md description is capped at 1024 chars even when auto-generated text would be longer', () => {
+    const specPath = join(tempDir, 'openspec/specs/example/spec.md');
+    const longReqs = Array.from({ length: 30 }, (_, i) =>
+      `### Requirement: A Very Long Requirement Name Number ${i + 1}\n\nDescription for req ${i + 1}.`
+    ).join('\n\n');
+    writeFileSync(specPath, `# Long Spec\n\n## Requirements\n\n${longReqs}\n`);
+    runCLI('build', tempDir);
+
+    const content = readFileSync(join(tempDir, '.github/skills/example/SKILL.md'), 'utf-8');
+    const descMatch = content.match(/^description: (.+)$/m);
+    expect(descMatch).not.toBeNull();
+    expect(descMatch![1].length).toBeLessThanOrEqual(1024);
   });
 
   it('SKILL.md description fits on a single line (no YAML continuation indentation)', () => {
