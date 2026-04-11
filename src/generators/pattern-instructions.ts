@@ -8,7 +8,8 @@ export function generatePatternInstructions(
   outputDir: string,
   options: BuildOptions = {},
 ): GeneratedFile | null {
-  const filePattern = spec.frontmatter?.file_pattern as string | undefined;
+  const raw = spec.frontmatter?.file_pattern;
+  const filePattern = typeof raw === 'string' && raw.length > 0 ? raw : null;
   if (!filePattern) return null;
 
   const instructionsPath = join(outputDir, 'instructions', `${spec.domain}.instructions.md`);
