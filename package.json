@@ -1,6 +1,6 @@
 {
   "name": "daedalion",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Spec-to-Agent compiler for GitHub Copilot",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

@@ -1,5 +1,29 @@
 # Daedalion Release Notes
 
+## v0.3.3 (April 11, 2026)
+
+### Bug Fixes
+
+- **`daedalion validate` no longer flags delta-spec-backed or hand-maintained skills as orphans** — Rule 5 (orphan skill check) was scanning all directories under `.github/skills/` and requiring each to have a canonical spec in `openspec/specs/`. This caused two classes of false positives: (1) skills generated from delta specs (not yet promoted via `/opsx:archive`) had no canonical spec and were flagged; (2) hand-maintained workflow skills (e.g. OpenSpec's own `openspec-apply`, `openspec-propose` skills) were flagged because Daedalion has no ownership of them. Rule 5 is now **manifest-scoped**: it reads `.github/.daedalion-manifest.json` and only checks the skill domains Daedalion itself generated. Hand-maintained skills are silently ignored. When no manifest exists (build has never run), the rule is skipped entirely.
+
+- **Multi-domain change prompts now list all domain skills** — When a change spans multiple spec domains (multiple delta specs under `openspec/changes/<change>/specs/`), the generated prompt previously picked a single arbitrary domain via `findDomainForChange()` (which returned `specs[0].domain` — effectively random glob ordering). The prompt's `## Skills` section now lists every domain the change touches. The `agent:` field uses the first domain alphabetically, or the value of `primary_domain:` if set in the proposal's YAML frontmatter (`primary_domain: agent-policy-engine`).
+
+### Architecture
+
+- **New `src/discovery.ts` module** — Shared spec and change discovery extracted from `build.ts` into a dedicated module consumed by both `build.ts` and `validate.ts`. `discoverSpecs(openspecDir)` finds canonical + delta specs (canonical takes priority per domain). `discoverChanges(openspecDir)` finds changes and captures each change's delta spec domains as `ParsedChange.domains: string[]`.
+
+### Tests
+
+- Added `test/build.test.ts`: change prompt uses `agent: default` and `#default` skill when change has no delta specs.
+- Added `test/build.test.ts`: change prompt lists all delta-spec domain skills when change spans multiple domains.
+- Added `test/build.test.ts`: change prompt uses `primary_domain` frontmatter as agent when specified.
+- Added `test/validate.test.ts`: orphan rule ignores skill dirs not listed in the manifest (hand-maintained).
+- Added `test/validate.test.ts`: orphan rule passes for skill built from a delta spec (not yet promoted to canonical).
+- Added `test/validate.test.ts`: orphan rule skips entirely when no manifest exists.
+- Total: 104 tests, all passing.
+
+---
+
 ## v0.3.2 (April 11, 2026)
 
 ### Bug Fixes
