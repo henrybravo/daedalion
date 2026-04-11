@@ -26,9 +26,11 @@ Daedalion discovers specs from both `openspec/specs/` (canonical) and `openspec/
 **File:** `openspec/specs/{domain}/spec.md`
 
 ```markdown
-# Optional frontmatter for metadata and instructions
 ---
-# Example of agent behavior guidance in SKILL.md output
+# Scope .instructions.md to specific files (optional)
+file_pattern: "src/auth/**"
+
+# Agent behavior guidance in SKILL.md output (optional)
 agent_instructions: |
   You are an automated UAT validator.
   ## Core Workflow
@@ -59,6 +61,16 @@ The system SHALL issue a JWT on successful login.
 | Title | `# Domain Specification` | Yes |
 | Requirement | `### Requirement: Name` | At least one |
 | Scenario | `#### Scenario: Name` | At least one per requirement |
+
+### Frontmatter Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `file_pattern` | string | Glob (or comma-separated globs) scoping a generated `.github/instructions/{domain}.instructions.md` to specific files. When present, Copilot loads the domain's requirement summaries automatically whenever a matching file is active. Omit to skip instructions file generation entirely. Example: `"src/payments/**,src/billing/**"` |
+| `agent_instructions` | string (multiline) | Injected verbatim as an `# Agent Instructions` section at the top of `SKILL.md`. Use to give the skill's agent persona-level guidance. |
+| `description` | string | Overrides the auto-generated skill description in `SKILL.md` frontmatter (max 1024 chars). Useful when the auto-generated text is insufficient for reliable auto-loading. |
+| `agent_tools` | list | Overrides the default tool list for this domain's `.agent.md`. Example: `['edit', 'search', 'web']`. |
+| `tools` | list | Tool definitions preserved verbatim in `SKILL.md` frontmatter. |
 
 ## Proposal Format
 
