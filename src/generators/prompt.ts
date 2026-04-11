@@ -6,15 +6,18 @@ import type { BuildOptions, GeneratedFile, Proposal, TasksSummary } from '../typ
 export function generatePrompt(
   proposal: Proposal,
   tasks: TasksSummary,
-  domain: string,
+  primaryDomain: string,
+  allDomains: string[],
   outputDir: string,
   options: BuildOptions = {},
 ): GeneratedFile {
   const promptPath = join(outputDir, 'prompts', `${proposal.changeName}.prompt.md`);
 
+  const skillLines = allDomains.map(d => `- #${d}`).join('\n');
+
   const content = `---
 description: ${proposal.title}
-agent: ${domain || 'default'}
+agent: ${primaryDomain}
 ---
 Implement the ${proposal.changeName} change proposal.
 
@@ -29,7 +32,7 @@ ${proposal.what || 'No scope defined.'}
 - Tasks: openspec/changes/${proposal.changeName}/tasks.md
 
 ## Skills
-- #${domain || 'default'}
+${skillLines}
 ${tasks && tasks.items.length > 0 ? `
 ## Tasks
 ${tasks.items.map((t: string) => `- [ ] ${t}`).join('\n')}

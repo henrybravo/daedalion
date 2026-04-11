@@ -103,8 +103,7 @@ export async function build(cwd: string, options: BuildOptions = {}): Promise<Ge
 
   // Generate prompts from changes
   for (const change of changes) {
-    const domain = findDomainForChange(change, specs);
-    const promptResult = generatePrompt(change.proposal, change.tasks, domain, outputDir, options);
+    const promptResult = generatePrompt(change.proposal, change.tasks, 'default', ['default'], outputDir, options);
     generatedFiles.push(promptResult);
     logGenerated(promptResult.path, cwd, options);
   }

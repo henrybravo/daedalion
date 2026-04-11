@@ -423,4 +423,49 @@ Some extra content that should not appear verbatim.
     expect(content).toContain('agent: default');
     expect(content).toContain('- #default');
   });
+
+  it('change prompt lists all delta-spec domain skills when change spans multiple domains', () => {
+    // Add two delta specs to the example-feature change
+    mkdirSync(join(tempDir, 'openspec/changes/example-feature/specs/domain-a'), { recursive: true });
+    writeFileSync(
+      join(tempDir, 'openspec/changes/example-feature/specs/domain-a/spec.md'),
+      `# Domain A\n\n## Requirements\n\n### Requirement: A Req\n\nShall do A.\n\n#### Scenario: S\n- WHEN x\n- THEN y\n`
+    );
+    mkdirSync(join(tempDir, 'openspec/changes/example-feature/specs/domain-b'), { recursive: true });
+    writeFileSync(
+      join(tempDir, 'openspec/changes/example-feature/specs/domain-b/spec.md'),
+      `# Domain B\n\n## Requirements\n\n### Requirement: B Req\n\nShall do B.\n\n#### Scenario: S\n- WHEN x\n- THEN y\n`
+    );
+
+    runCLI('build', tempDir);
+
+    const content = readFileSync(join(tempDir, '.github/prompts/example-feature.prompt.md'), 'utf-8');
+    expect(content).toContain('- #domain-a');
+    expect(content).toContain('- #domain-b');
+  });
+
+  it('change prompt uses primary_domain frontmatter as agent when specified', () => {
+    mkdirSync(join(tempDir, 'openspec/changes/example-feature/specs/domain-a'), { recursive: true });
+    writeFileSync(
+      join(tempDir, 'openspec/changes/example-feature/specs/domain-a/spec.md'),
+      `# Domain A\n\n## Requirements\n\n### Requirement: A Req\n\nShall do A.\n\n#### Scenario: S\n- WHEN x\n- THEN y\n`
+    );
+    mkdirSync(join(tempDir, 'openspec/changes/example-feature/specs/domain-b'), { recursive: true });
+    writeFileSync(
+      join(tempDir, 'openspec/changes/example-feature/specs/domain-b/spec.md'),
+      `# Domain B\n\n## Requirements\n\n### Requirement: B Req\n\nShall do B.\n\n#### Scenario: S\n- WHEN x\n- THEN y\n`
+    );
+
+    // Nominate domain-b as primary
+    const proposalPath = join(tempDir, 'openspec/changes/example-feature/proposal.md');
+    const original = readFileSync(proposalPath, 'utf-8');
+    writeFileSync(proposalPath, `---\nprimary_domain: domain-b\n---\n${original}`);
+
+    runCLI('build', tempDir);
+
+    const content = readFileSync(join(tempDir, '.github/prompts/example-feature.prompt.md'), 'utf-8');
+    expect(content).toContain('agent: domain-b');
+    expect(content).toContain('- #domain-a');
+    expect(content).toContain('- #domain-b');
+  });
 });
