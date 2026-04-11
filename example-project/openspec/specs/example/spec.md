@@ -1,3 +1,6 @@
+---
+file_pattern: "src/example/**"
+---
 # Example Specification
 
 This is an example specification demonstrating the OpenSpec format.

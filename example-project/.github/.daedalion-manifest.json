@@ -1,11 +1,14 @@
 {
   "version": 1,
-  "generatedAt": "2026-01-23T07:41:43.392Z",
+  "generatedAt": "2026-04-11T11:01:49.341Z",
   "files": [
     ".github/skills/example/SKILL.md",
+    ".github/skills/example/user-greeting.md",
+    ".github/skills/example/session-management.md",
     ".github/agents/example.agent.md",
+    ".github/instructions/example.instructions.md",
+    ".github/AGENTS.md",
     ".github/prompts/example-feature.prompt.md",
-    ".github/workflows/daedalion.yml",
     ".github/copilot-instructions.md"
   ]
 }
