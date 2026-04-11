@@ -34,7 +34,7 @@ Daedalion ensures humans and AIs agree on **what to build** before any code is w
 - Keeping specifications as the canonical source of truth
 - Maintaining synchronization between specs and AI artifacts
 
-When you run `daedalion build`, it generates a special prompt file - `daedalion-openspec-cycle.prompt.md` - that acts as an **AI code coordinator**. This prompt enforces the spec-driven workflow across all AI interactions.
+When you run `daedalion init`, it installs `.github/prompts/daedalion-compile.prompt.md` — a prompt that guides the AI through discovering and compiling your spec files. The OpenSpec workflow prompts (`opsx-propose`, `opsx-apply`, `opsx-archive`) are installed separately by the OpenSpec CLI.
 
 ## The OpenSpec Cycle
 
@@ -126,17 +126,23 @@ daedalion build [--dry-run] [--verbose] [--force] [--with-tools]
 .github/
 ├── skills/
 │   └── {domain}/
-│       └── SKILL.md                    # Auto-loaded skill
+│       ├── SKILL.md                    # Hub: requirements + acceptance criteria links
+│       └── {requirement}.md            # Spoke: scenario steps per requirement
 ├── agents/
 │   └── {domain}.agent.md               # Selectable agent persona
 ├── prompts/
-│   ├── daedalion-openspec-cycle.prompt.md   # AI coordinator
 │   └── {change-name}.prompt.md         # Change-specific prompts
+├── instructions/
+│   └── {domain}.instructions.md        # File-scoped context (opt-in via file_pattern)
+├── AGENTS.md                           # Domain discovery index
 ├── workflows/
-│   └── daedalion.yml                   # CI/CD workflow
+│   └── daedalion.yml                   # CI/CD workflow (opt-in via ci.enabled)
 ├── copilot-instructions.md             # Project context
 └── .daedalion-manifest.json            # Tracks generated files
 ```
+
+> **Note:** `.github/instructions/{domain}.instructions.md` is only generated when the spec has a `file_pattern` frontmatter field. See [Spec Frontmatter](#spec-frontmatter).
+> **Note:** `daedalion init` additionally installs `.github/prompts/daedalion-compile.prompt.md` — this file is not tracked in the manifest and not removed by `daedalion clean`.
 
 **Examples:**
 

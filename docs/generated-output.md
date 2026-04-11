@@ -28,7 +28,7 @@ Auto-loaded by Copilot when you reference `#domain` in chat.
 ```yaml
 ---
 name: auth
-description: User authentication with JWT. Use when working on auth, login, session.
+description: Auth Specification - user authentication, session management. Use when working on auth.
 ---
 # Auth Specification
 
@@ -55,7 +55,7 @@ Selectable personas in Copilot's agent dropdown.
 ---
 name: auth
 description: Implements auth features following specifications
-tools: ['edit', 'search', 'terminal']
+tools: ['edit', 'search', 'execute']
 ---
 # auth Agent
 
@@ -123,6 +123,36 @@ jobs:
       - run: npm install -g daedalion
       - run: daedalion build --dry-run
       - run: daedalion validate
+```
+
+## Pattern Instructions (opt-in)
+
+**File:** `.github/instructions/{domain}.instructions.md`
+
+File-scoped, always-on context that Copilot loads automatically when a matching file is active in the editor. Unlike skills (invoked on demand), instructions fire unconditionally for the files they cover.
+
+**Only generated when the spec has a `file_pattern` frontmatter field.** Specs without `file_pattern` produce no instructions file — the skill alone is sufficient for task-oriented context.
+
+```yaml
+---
+file_pattern: "src/payments/**,src/billing/**"
+---
+# Payments Specification
+...
+```
+
+Generates:
+
+```markdown
+---
+applyTo: "src/payments/**,src/billing/**"
+---
+# Payments Specification
+
+Domain: `payments` · Skill: `#payments`
+
+## Requirements
+- **Checkout flow**: ...
 ```
 
 ## Manifest
