@@ -7,7 +7,10 @@ export function generatePatternInstructions(
   spec: Spec,
   outputDir: string,
   options: BuildOptions = {},
-): GeneratedFile {
+): GeneratedFile | null {
+  const filePattern = spec.frontmatter?.file_pattern as string | undefined;
+  if (!filePattern) return null;
+
   const instructionsPath = join(outputDir, 'instructions', `${spec.domain}.instructions.md`);
 
   const requirementsSummary = spec.requirements
@@ -15,17 +18,7 @@ export function generatePatternInstructions(
     .map((r: Requirement) => `- **${r.name}**: ${r.description}`)
     .join('\n');
 
-  const content = `---
-applyTo: "**"
----
-# ${spec.title}
-
-Domain: \`${spec.domain}\` · Skill: \`#${spec.domain}\`
-
-## Requirements
-
-${requirementsSummary || `See \`.github/skills/${spec.domain}/SKILL.md\` for full requirements.`}
-`;
+  const content = `---\napplyTo: "${filePattern}"\n---\n# ${spec.title}\n\nDomain: \`${spec.domain}\` · Skill: \`#${spec.domain}\`\n\n## Requirements\n\n${requirementsSummary || `See \`.github/skills/${spec.domain}/SKILL.md\` for full requirements.`}\n`;
 
   if (options.dryRun) {
     return { path: instructionsPath, content };

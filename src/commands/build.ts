@@ -78,8 +78,10 @@ export async function build(cwd: string, options: BuildOptions = {}): Promise<Ge
     logGenerated(agentResult.path, cwd, options);
 
     const patternInstructionsResult = generatePatternInstructions(spec, outputDir, options);
-    generatedFiles.push(patternInstructionsResult);
-    logGenerated(patternInstructionsResult.path, cwd, options);
+    if (patternInstructionsResult !== null) {
+      generatedFiles.push(patternInstructionsResult);
+      logGenerated(patternInstructionsResult.path, cwd, options);
+    }
   }
 
   // Generate tool stubs if --with-tools flag is set

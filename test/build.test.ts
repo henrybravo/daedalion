@@ -237,16 +237,51 @@ ${original}`;
     expect(frontmatter).not.toMatch(/\n {2,}/);
   });
 
-  it('generates pattern instructions for each spec domain', () => {
+  it('does NOT generate pattern instructions when file_pattern is absent from spec', () => {
+    runCLI('build', tempDir);
+    // Example spec has no file_pattern → no instructions file
+    expect(existsSync(join(tempDir, '.github/instructions/example.instructions.md'))).toBe(false);
+  });
+
+  it('generates pattern instructions with correct applyTo when file_pattern is present', () => {
+    const specPath = join(tempDir, 'openspec/specs/example/spec.md');
+    const original = readFileSync(specPath, 'utf-8');
+    writeFileSync(specPath, `---\nfile_pattern: "src/example/**"\n---\n${original}`);
     runCLI('build', tempDir);
 
     const instructionsPath = join(tempDir, '.github/instructions/example.instructions.md');
     expect(existsSync(instructionsPath)).toBe(true);
-
     const content = readFileSync(instructionsPath, 'utf-8');
-
-    expect(content).toContain('applyTo:');
+    expect(content).toContain('applyTo: "src/example/**"');
     expect(content).toContain('example');
+  });
+
+  it('generates pattern instructions with multi-glob applyTo', () => {
+    const specPath = join(tempDir, 'openspec/specs/example/spec.md');
+    const original = readFileSync(specPath, 'utf-8');
+    writeFileSync(specPath, `---\nfile_pattern: "src/a/**,src/b/**"\n---\n${original}`);
+    runCLI('build', tempDir);
+
+    const content = readFileSync(
+      join(tempDir, '.github/instructions/example.instructions.md'),
+      'utf-8'
+    );
+    expect(content).toContain('applyTo: "src/a/**,src/b/**"');
+  });
+
+  it('only generates instructions file for specs that have file_pattern', () => {
+    const authSpecDir = join(tempDir, 'openspec/specs/auth');
+    mkdirSync(authSpecDir, { recursive: true });
+    writeFileSync(join(authSpecDir, 'spec.md'), `# Auth Specification\n\n## Requirements\n\n### Requirement: Login\n\nUsers can log in.\n`);
+
+    const specPath = join(tempDir, 'openspec/specs/example/spec.md');
+    const original = readFileSync(specPath, 'utf-8');
+    writeFileSync(specPath, `---\nfile_pattern: "src/example/**"\n---\n${original}`);
+
+    runCLI('build', tempDir);
+
+    expect(existsSync(join(tempDir, '.github/instructions/example.instructions.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.github/instructions/auth.instructions.md'))).toBe(false);
   });
 
   it('generates AGENTS.md listing all domains', () => {
