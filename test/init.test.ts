@@ -87,6 +87,19 @@ describe('daedalion init', () => {
     expect(content).toContain('description:');
   });
 
+  it('daedalion-compile.prompt.md frontmatter must not contain a name: key', () => {
+    runCLI('init', tempDir);
+    const content = readFileSync(
+      join(tempDir, '.github/prompts/daedalion-compile.prompt.md'),
+      'utf-8'
+    );
+    // Extract frontmatter between opening and closing --- (handle both \n and \r\n)
+    const fmMatch = content.match(/^---[\r\n]+([\s\S]*?)[\r\n]+---/);
+    expect(fmMatch).not.toBeNull();
+    const frontmatter = fmMatch![1];
+    expect(frontmatter).not.toMatch(/^name:/m);
+  });
+
   it('does not overwrite existing files', () => {
     runCLI('init --with-example', tempDir);
 

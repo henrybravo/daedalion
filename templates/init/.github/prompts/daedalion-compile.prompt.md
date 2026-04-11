@@ -1,5 +1,4 @@
 ---
-name: daedalion-compile
 description: Compile specs into GitHub Copilot artifacts (agents, skills, prompts, AGENTS.md)
 ---
 
