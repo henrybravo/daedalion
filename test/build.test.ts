@@ -213,15 +213,17 @@ ${original}`;
   it('SKILL.md description is capped at 1024 chars even when auto-generated text would be longer', () => {
     const specPath = join(tempDir, 'openspec/specs/example/spec.md');
     const longReqs = Array.from({ length: 30 }, (_, i) =>
-      `### Requirement: A Very Long Requirement Name Number ${i + 1}\n\nDescription for req ${i + 1}.`
-    ).join('\n\n');
-    writeFileSync(specPath, `# Long Spec\n\n## Requirements\n\n${longReqs}\n`);
+      `### Requirement: A Very Long Requirement Name Number ${i + 1}\n\nDescription for requirement ${i + 1}.\n`
+    ).join('\n');
+    writeFileSync(specPath, `# Long Spec Title For Testing\n\n## Requirements\n\n${longReqs}`);
     runCLI('build', tempDir);
 
     const content = readFileSync(join(tempDir, '.github/skills/example/SKILL.md'), 'utf-8');
     const descMatch = content.match(/^description: (.+)$/m);
     expect(descMatch).not.toBeNull();
     expect(descMatch![1].length).toBeLessThanOrEqual(1024);
+    // Must be close to 1024 — proves the truncation branch was actually reached
+    expect(descMatch![1].length).toBeGreaterThan(900);
   });
 
   it('SKILL.md description fits on a single line (no YAML continuation indentation)', () => {

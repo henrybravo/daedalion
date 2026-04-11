@@ -108,7 +108,7 @@ function generateDescription(spec: Spec): string {
   const reqNames = spec.requirements
     .map(r => r.name.toLowerCase())
     .join(', ');
-  const description = `${spec.title} - ${reqNames}. Use when working on ${domain}, implementing ${reqNames}.`;
+  const description = `${spec.title} - ${reqNames}. Use when working on ${domain}.`;
   return description.slice(0, 1024);
 }
 
