@@ -5,6 +5,7 @@ node_modules/
 tmp/
 temp/
 trash
+docs/internal/
 
 # Build output
 dist/
