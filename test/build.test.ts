@@ -415,4 +415,12 @@ Some extra content that should not appear verbatim.
     expect(content).not.toContain('## Extra Section');
     expect(content).not.toContain('Some extra content that should not appear verbatim.');
   });
+
+  it('change prompt uses agent: default and #default skill when change has no delta specs', () => {
+    // example-feature has no delta specs by default after init
+    runCLI('build', tempDir);
+    const content = readFileSync(join(tempDir, '.github/prompts/example-feature.prompt.md'), 'utf-8');
+    expect(content).toContain('agent: default');
+    expect(content).toContain('- #default');
+  });
 });
