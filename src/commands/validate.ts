@@ -1,12 +1,13 @@
-import { existsSync, readdirSync, statSync } from 'fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
 import chalk from 'chalk';
 import { VERSION } from '../version.js';
-import { glob } from 'glob';
 import { loadConfig, resolveOpenspecPath, resolveOutputPath } from '../config.js';
-import { parseSpec } from '../parsers/spec.js';
+import { discoverSpecs } from '../discovery.js';
 import { parseProposal } from '../parsers/proposal.js';
-import type { Spec, ValidationError, ChangeReference } from '../types.js';
+import type { Spec, ValidationError, ChangeReference, Manifest } from '../types.js';
+
+const MANIFEST_FILENAME = '.daedalion-manifest.json';
 
 export async function validate(cwd: string): Promise<boolean> {
   console.log();
@@ -19,7 +20,7 @@ export async function validate(cwd: string): Promise<boolean> {
 
   const errors: ValidationError[] = [];
 
-  const specs = await findAndParseSpecs(openspecDir);
+  const specs = await discoverSpecs(openspecDir);
   const changes = await findAndParseChanges(openspecDir);
 
   // Rule 1: Every spec has ≥1 requirement
@@ -66,20 +67,25 @@ export async function validate(cwd: string): Promise<boolean> {
     }
   }
 
-  // Rule 5: No orphaned skills
-  const skillsDir = join(outputDir, 'skills');
-  if (existsSync(skillsDir)) {
-    const skillDirs = readdirSync(skillsDir).filter((name: string) => {
-      const fullPath = join(skillsDir, name);
-      return statSync(fullPath).isDirectory();
-    });
+  // Rule 5: No orphaned skills (manifest-scoped)
+  // Only checks skills Daedalion generated. Hand-maintained skills are not Daedalion's concern.
+  // Skips entirely when no manifest exists (build has never been run).
+  const manifestPath = join(outputDir, MANIFEST_FILENAME);
+  if (existsSync(manifestPath)) {
+    const manifest: Manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    const manifestSkillDomains = manifest.files
+      .filter(f => f.includes('/skills/') && f.endsWith('/SKILL.md'))
+      .map(f => {
+        const parts = f.split('/');
+        return parts[parts.indexOf('skills') + 1];
+      });
 
-    for (const skillName of skillDirs) {
-      const hasSpec = specs.some((s: Spec) => s.domain === skillName);
+    for (const domain of manifestSkillDomains) {
+      const hasSpec = specs.some((s: Spec) => s.domain === domain);
       if (!hasSpec) {
         errors.push({
           rule: 'no-orphan-skills',
-          message: `Orphan skill: ${skillName} has no source spec.\n       Remove .github/skills/${skillName}/ or create openspec/specs/${skillName}/spec.md`
+          message: `Orphan skill: ${domain} has no source spec.\n       Run 'daedalion build' again or add openspec/specs/${domain}/spec.md`
         });
       }
     }
@@ -100,16 +106,6 @@ export async function validate(cwd: string): Promise<boolean> {
   }
 
   return false;
-}
-
-async function findAndParseSpecs(openspecDir: string): Promise<Spec[]> {
-  const specsDir = join(openspecDir, 'specs');
-  if (!existsSync(specsDir)) {
-    return [];
-  }
-
-  const specFiles = await glob('*/spec.md', { cwd: specsDir });
-  return specFiles.map((file: string) => parseSpec(join(specsDir, file)));
 }
 
 async function findAndParseChanges(openspecDir: string): Promise<ChangeReference[]> {
