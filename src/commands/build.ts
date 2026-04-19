@@ -63,7 +63,7 @@ export async function build(cwd: string, options: BuildOptions = {}): Promise<Ge
   // Generate skills and agents from specs
   for (const spec of specs) {
     const tasks = allTasks[spec.domain] || null;
-    const skillResults = generateSkill(spec, tasks, outputDir, options);
+    const skillResults = generateSkill(spec, tasks, outputDir, options, config);
     for (const skillResult of skillResults) {
       generatedFiles.push(skillResult);
       logGenerated(skillResult.path, cwd, options);

@@ -2,16 +2,18 @@ import { ensureDir } from '../utils.js';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
 import YAML from 'yaml';
-import type { GeneratedFile, BuildOptions, Spec, Requirement, Scenario, TasksSummary } from '../types.js';
+import type { GeneratedFile, BuildOptions, Spec, Requirement, Scenario, TasksSummary, DaedalionConfig } from '../types.js';
 
 export function generateSkill(
   spec: Spec,
   tasks: TasksSummary | null,
   outputDir: string,
   options: BuildOptions = {},
+  config: Partial<DaedalionConfig> = {},
 ): GeneratedFile[] {
   const skillDir = join(outputDir, 'skills', spec.domain);
   const skillPath = join(skillDir, 'SKILL.md');
+  const target: 'ide' | 'sdk' = config.agents?.target ?? 'ide';
 
   const description = generateDescription(spec);
 
@@ -59,7 +61,11 @@ ${spec.requirements.map((r: Requirement) => `- **${r.name}**: ${r.description}`)
 ## Acceptance Criteria
 `;
 
-  content += renderHubSpokeAcceptance(requirementsWithScenarios);
+  if (target === 'sdk') {
+    content += renderFlatAcceptance(requirementsWithScenarios);
+  } else {
+    content += renderHubSpokeAcceptance(requirementsWithScenarios);
+  }
 
   if (tasks && tasks.items.length > 0) {
     content += `
@@ -79,16 +85,19 @@ ${tasks.hasMore ? `\n> Full task list: openspec/changes/*/tasks.md` : ''}`;
   }
   results.push({ path: skillPath, content });
 
-  // Generate one spoke file per requirement that has scenarios
-  for (const req of requirementsWithScenarios) {
-    const spokePath = join(skillDir, `${toSlug(req.name)}.md`);
-    const spokeContent = generateSpoke(req);
+  // Generate one spoke file per requirement that has scenarios — IDE mode only.
+  // SDK mode inlines scenarios into SKILL.md (see renderFlatAcceptance).
+  if (target !== 'sdk') {
+    for (const req of requirementsWithScenarios) {
+      const spokePath = join(skillDir, `${toSlug(req.name)}.md`);
+      const spokeContent = generateSpoke(req);
 
-    if (!options.dryRun) {
-      ensureDir(spokePath);
-      writeFileSync(spokePath, spokeContent);
+      if (!options.dryRun) {
+        ensureDir(spokePath);
+        writeFileSync(spokePath, spokeContent);
+      }
+      results.push({ path: spokePath, content: spokeContent });
     }
-    results.push({ path: spokePath, content: spokeContent });
   }
 
   return results;
@@ -114,6 +123,29 @@ function renderHubSpokeAcceptance(requirementsWithScenarios: Requirement[]): str
   return requirementsWithScenarios
     .map((r: Requirement) => `- [${r.name}](./${toSlug(r.name)}.md)`)
     .join('\n');
+}
+
+/** Flat acceptance criteria for SDK mode — inlines scenarios under per-requirement headings. */
+function renderFlatAcceptance(requirementsWithScenarios: Requirement[]): string {
+  if (requirementsWithScenarios.length === 0) {
+    return '_No scenarios defined._';
+  }
+
+  const lines: string[] = [];
+  for (const req of requirementsWithScenarios) {
+    lines.push(`### ${req.name}`);
+    for (const scenario of req.scenarios) {
+      lines.push(`#### ${scenario.name}`);
+      for (const step of (scenario as Scenario).steps) {
+        lines.push(`- ${step}`);
+      }
+      lines.push('');
+    }
+  }
+  while (lines.length > 0 && lines[lines.length - 1] === '') {
+    lines.pop();
+  }
+  return lines.join('\n');
 }
 
 function generateSpoke(req: Requirement): string {
