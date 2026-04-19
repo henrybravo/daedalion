@@ -1,5 +1,33 @@
 # Daedalion Release Notes
 
+## v0.3.4 (April 19, 2026)
+
+### Bug Fixes
+
+- **Flat `SKILL.md` for `agents.target: sdk`** — the GitHub Copilot SDK loads every `.md` file under `skill_directories` eagerly, so the v0.3.0 hub/spoke layout caused per-requirement spoke files to be re-injected into the system prompt alongside the requirement summary already present in `SKILL.md`. A real-world SDK consumer measured ~+2,860 tokens per call from this duplication. `daedalion build` now branches on `agents.target`: `ide` (default) keeps the hub/spoke layout unchanged; `sdk` emits a single flat `SKILL.md` per domain with scenarios inlined under `## Acceptance Criteria` as `### <requirement> / #### <scenario>` blocks. No new config keys.
+
+- **`copilot-instructions.md` extracts `## Project Conventions` headings** — the v0.1.2 extractor matched only the literal heading `## Conventions`, but openspec-scaffolded projects typically use `## Project Conventions`, causing the conventions block to silently disappear from generated instructions. The extractor now matches both `## Conventions` and `## Project Conventions` (case-insensitive). The output heading is always normalised to `## Conventions` regardless of the source heading, so consumers see a stable section name.
+
+### Unchanged
+
+- Default behavior for `agents.target: ide` (hub/spoke skill output and `## Conventions` extraction).
+- No new config keys.
+
+### Tests
+
+- Added `test/build.test.ts`: extracts conventions when source heading is `## Project Conventions`.
+- Added `test/build.test.ts`: extracts conventions with mixed-case heading `## project conventions`.
+- Added `test/build.test.ts`: emits flat `SKILL.md` (no spoke files) when `agents.target` is `sdk`.
+- Added `test/build.test.ts`: emits hub + spoke files when `agents.target` is `ide` (regression guard).
+- Added `test/build.test.ts`: omits scenario-less requirements from `## Acceptance Criteria` in `sdk` mode.
+- Total: 109 tests, all passing.
+
+### Credits
+
+Findings reported by a real-world SDK-agent consumer project applying v0.3.3 to a Copilot SDK-driven mortgage UAT agent.
+
+---
+
 ## v0.3.3 (April 11, 2026)
 
 ### Bug Fixes
