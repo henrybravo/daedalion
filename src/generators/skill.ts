@@ -59,13 +59,7 @@ ${spec.requirements.map((r: Requirement) => `- **${r.name}**: ${r.description}`)
 ## Acceptance Criteria
 `;
 
-  if (requirementsWithScenarios.length > 0) {
-    content += requirementsWithScenarios
-      .map((r: Requirement) => `- [${r.name}](./${toSlug(r.name)}.md)`)
-      .join('\n');
-  } else {
-    content += '_No scenarios defined._';
-  }
+  content += renderHubSpokeAcceptance(requirementsWithScenarios);
 
   if (tasks && tasks.items.length > 0) {
     content += `
@@ -110,6 +104,16 @@ function generateDescription(spec: Spec): string {
     .join(', ');
   const description = `${spec.title} - ${reqNames}. Use when working on ${domain}.`;
   return description.slice(0, 1024);
+}
+
+/** Hub/spoke acceptance criteria — bullets linking to per-requirement spoke files. */
+function renderHubSpokeAcceptance(requirementsWithScenarios: Requirement[]): string {
+  if (requirementsWithScenarios.length === 0) {
+    return '_No scenarios defined._';
+  }
+  return requirementsWithScenarios
+    .map((r: Requirement) => `- [${r.name}](./${toSlug(r.name)}.md)`)
+    .join('\n');
 }
 
 function generateSpoke(req: Requirement): string {
