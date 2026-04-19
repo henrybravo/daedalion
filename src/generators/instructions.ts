@@ -37,7 +37,7 @@ function extractConventionsSection(projectPath: string): string | null {
   const conventionLines: string[] = [];
 
   for (const line of lines) {
-    if (/^## Conventions\s*$/.test(line)) {
+    if (/^##\s+(Project\s+)?Conventions\s*$/i.test(line)) {
       inConventions = true;
       continue;
     }

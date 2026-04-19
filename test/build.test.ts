@@ -416,6 +416,81 @@ Some extra content that should not appear verbatim.
     expect(content).not.toContain('Some extra content that should not appear verbatim.');
   });
 
+  it('extracts conventions when source heading is "## Project Conventions"', () => {
+    // Add a spec so build does not skip generating instructions
+    mkdirSync(join(tempDir, 'openspec/specs/auth'), { recursive: true });
+    writeFileSync(join(tempDir, 'openspec/specs/auth/spec.md'), `# Auth Spec
+
+## Requirements
+
+### Requirement: Login
+
+The system SHALL allow users to log in.
+
+### Scenario: Successful login
+
+- Given a registered user
+- When they submit valid credentials
+- Then they receive an auth token
+`);
+
+    writeFileSync(join(tempDir, 'openspec/project.md'), `# My Acme Project
+
+## Goals
+
+- Ship fast
+
+## Project Conventions
+
+- Use kebab-case for file names
+- Every feature needs a spec before implementation
+`);
+
+    runCLI('build', tempDir);
+
+    const instructionsPath = join(tempDir, '.github/copilot-instructions.md');
+    const content = readFileSync(instructionsPath, 'utf-8');
+
+    // Source heading was "## Project Conventions" — must still surface the content
+    expect(content).toContain('Use kebab-case for file names');
+    // Output heading is normalised to "## Conventions" regardless of source
+    expect(content).toMatch(/^## Conventions\s*$/m);
+    // Must NOT include the source-side "## Project Conventions" heading verbatim
+    expect(content).not.toContain('## Project Conventions');
+  });
+
+  it('extracts conventions with mixed-case heading "## project conventions"', () => {
+    mkdirSync(join(tempDir, 'openspec/specs/auth'), { recursive: true });
+    writeFileSync(join(tempDir, 'openspec/specs/auth/spec.md'), `# Auth Spec
+
+## Requirements
+
+### Requirement: Login
+
+The system SHALL allow users to log in.
+
+### Scenario: Successful login
+
+- Given a user
+- When they log in
+- Then it works
+`);
+
+    writeFileSync(join(tempDir, 'openspec/project.md'), `# Project
+
+## project conventions
+
+- lowercase headings should still match
+`);
+
+    runCLI('build', tempDir);
+
+    const instructionsPath = join(tempDir, '.github/copilot-instructions.md');
+    const content = readFileSync(instructionsPath, 'utf-8');
+
+    expect(content).toContain('lowercase headings should still match');
+  });
+
   it('change prompt uses agent: default and #default skill when change has no delta specs', () => {
     // example-feature has no delta specs by default after init
     runCLI('build', tempDir);
