@@ -416,6 +416,172 @@ Some extra content that should not appear verbatim.
     expect(content).not.toContain('Some extra content that should not appear verbatim.');
   });
 
+  it('extracts conventions when source heading is "## Project Conventions"', () => {
+    // Add a spec so build does not skip generating instructions
+    mkdirSync(join(tempDir, 'openspec/specs/auth'), { recursive: true });
+    writeFileSync(join(tempDir, 'openspec/specs/auth/spec.md'), `# Auth Spec
+
+## Requirements
+
+### Requirement: Login
+
+The system SHALL allow users to log in.
+
+### Scenario: Successful login
+
+- Given a registered user
+- When they submit valid credentials
+- Then they receive an auth token
+`);
+
+    writeFileSync(join(tempDir, 'openspec/project.md'), `# My Acme Project
+
+## Goals
+
+- Ship fast
+
+## Project Conventions
+
+- Use kebab-case for file names
+- Every feature needs a spec before implementation
+`);
+
+    runCLI('build', tempDir);
+
+    const instructionsPath = join(tempDir, '.github/copilot-instructions.md');
+    const content = readFileSync(instructionsPath, 'utf-8');
+
+    // Source heading was "## Project Conventions" — must still surface the content
+    expect(content).toContain('Use kebab-case for file names');
+    // Output heading is normalised to "## Conventions" regardless of source
+    expect(content).toMatch(/^## Conventions\s*$/m);
+    // Must NOT include the source-side "## Project Conventions" heading verbatim
+    expect(content).not.toContain('## Project Conventions');
+  });
+
+  it('extracts conventions with mixed-case heading "## project conventions"', () => {
+    mkdirSync(join(tempDir, 'openspec/specs/auth'), { recursive: true });
+    writeFileSync(join(tempDir, 'openspec/specs/auth/spec.md'), `# Auth Spec
+
+## Requirements
+
+### Requirement: Login
+
+The system SHALL allow users to log in.
+
+### Scenario: Successful login
+
+- Given a user
+- When they log in
+- Then it works
+`);
+
+    writeFileSync(join(tempDir, 'openspec/project.md'), `# Project
+
+## project conventions
+
+- lowercase headings should still match
+`);
+
+    runCLI('build', tempDir);
+
+    const instructionsPath = join(tempDir, '.github/copilot-instructions.md');
+    const content = readFileSync(instructionsPath, 'utf-8');
+
+    expect(content).toContain('lowercase headings should still match');
+  });
+
+  it('emits flat SKILL.md (no spoke files) when agents.target is sdk', () => {
+    // Override the default daedalion.yaml written by `init --with-example`
+    writeFileSync(join(tempDir, 'daedalion.yaml'), `version: 1
+openspec: ./openspec
+output: ./.github
+agents:
+  target: sdk
+`);
+
+    runCLI('build', tempDir);
+
+    const skillDir = join(tempDir, '.github/skills/example');
+    const skillPath = join(skillDir, 'SKILL.md');
+
+    expect(existsSync(skillPath)).toBe(true);
+
+    // The example spec has two requirements; in IDE mode this produces two spoke files.
+    // In SDK mode the spokes must NOT exist.
+    expect(existsSync(join(skillDir, 'user-greeting.md'))).toBe(false);
+    expect(existsSync(join(skillDir, 'session-management.md'))).toBe(false);
+
+    const content = readFileSync(skillPath, 'utf-8');
+
+    // Acceptance criteria must contain inlined scenarios, not links
+    expect(content).toContain('## Acceptance Criteria');
+    expect(content).toContain('### User Greeting');
+    expect(content).toContain('### Session Management');
+    expect(content).toContain('#### Known user logs in');
+    expect(content).toContain('Welcome, Alice!');
+
+    // No markdown links to spoke files
+    expect(content).not.toMatch(/\[.+\]\(\.\/[a-z-]+\.md\)/);
+  });
+
+  it('emits hub + spoke files when agents.target is ide (default behavior unchanged)', () => {
+    // Default config from `init --with-example` is target: ide
+    runCLI('build', tempDir);
+
+    const skillDir = join(tempDir, '.github/skills/example');
+
+    expect(existsSync(join(skillDir, 'SKILL.md'))).toBe(true);
+    expect(existsSync(join(skillDir, 'user-greeting.md'))).toBe(true);
+    expect(existsSync(join(skillDir, 'session-management.md'))).toBe(true);
+
+    const skillContent = readFileSync(join(skillDir, 'SKILL.md'), 'utf-8');
+    // Hub mode uses links, not inlined `#### <scenario>` headings
+    expect(skillContent).toContain('[User Greeting](./user-greeting.md)');
+    expect(skillContent).not.toContain('#### Known user logs in');
+  });
+
+  it('omits scenario-less requirements from Acceptance Criteria in sdk mode', () => {
+    writeFileSync(join(tempDir, 'daedalion.yaml'), `version: 1
+openspec: ./openspec
+output: ./.github
+agents:
+  target: sdk
+`);
+
+    // Replace example spec with one that has a scenario-less requirement
+    writeFileSync(join(tempDir, 'openspec/specs/example/spec.md'), `# Example
+
+## Requirements
+
+### Requirement: Has Scenarios
+
+The system SHALL do a thing.
+
+#### Scenario: It works
+
+- GIVEN setup
+- WHEN action
+- THEN result
+
+### Requirement: No Scenarios
+
+The system SHALL also document this requirement without scenarios.
+`);
+
+    runCLI('build', tempDir);
+
+    const content = readFileSync(join(tempDir, '.github/skills/example/SKILL.md'), 'utf-8');
+
+    // Both requirements appear in the Requirements list
+    expect(content).toContain('**Has Scenarios**');
+    expect(content).toContain('**No Scenarios**');
+
+    // Only the scenario-bearing one appears under Acceptance Criteria
+    expect(content).toContain('### Has Scenarios');
+    expect(content).not.toContain('### No Scenarios');
+  });
+
   it('change prompt uses agent: default and #default skill when change has no delta specs', () => {
     // example-feature has no delta specs by default after init
     runCLI('build', tempDir);

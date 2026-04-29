@@ -366,6 +366,47 @@ git push origin main --tags
 npm publish
 ```
 
+### GitHub Release Commands (`gh release`)
+
+Use GitHub CLI to create a GitHub Release from the version tag after publishing to npm.
+
+```bash
+# 1. Make sure gh is authenticated
+gh auth status
+
+# 2. Set the version tag (must match package.json version)
+VERSION="vX.Y.Z"
+
+# 3. Create and push tag (skip if tag already exists)
+git tag -a "$VERSION" -m "Release ${VERSION#v}"
+git push origin "$VERSION"
+
+# 4. Create GitHub release notes automatically and publish release
+gh release create "$VERSION" \
+  --title "$VERSION" \
+  --generate-notes
+```
+
+For draft flow:
+
+```bash
+gh release create "$VERSION" \
+  --title "$VERSION" \
+  --generate-notes \
+  --draft
+```
+
+For prereleases (alpha/beta/rc):
+
+```bash
+# Example: v0.4.0-beta.1
+VERSION="vX.Y.Z-beta.N"
+gh release create "$VERSION" \
+  --title "$VERSION" \
+  --generate-notes \
+  --prerelease
+```
+
 ### Semantic Versioning
 
 | Change Type | Version Bump | Example |
